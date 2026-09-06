@@ -2,6 +2,12 @@
 
 Todas las versiones relevantes de Wandra se registran aquí.
 
+## 0.1.2 — 2026-09-05
+
+### Corregido
+
+- Anulada la carpeta de salida `dist` heredada en Vercel para permitir que Next.js use su salida de despliegue nativa.
+
 ## 0.1.1 — 2026-09-05
 
 ### Corregido
