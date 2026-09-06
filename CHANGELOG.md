@@ -2,6 +2,14 @@
 
 Todas las versiones relevantes de Wandra se registran aquí.
 
+## 0.1.1 — 2026-09-05
+
+### Corregido
+
+- Migrado el proceso de build de Vinext/Cloudflare a Next.js estándar para compatibilidad directa con Vercel.
+- La página de inicio, catálogo, guías, FAQ y páginas de producto se generan como HTML estático durante el build.
+- Añadida la configuración PostCSS requerida por Tailwind en el entorno de Next.js.
+
 ## 0.1.0 — 2026-09-05
 
 ### Añadido
