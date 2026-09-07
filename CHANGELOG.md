@@ -23,7 +23,7 @@ Todas las versiones relevantes de Wandra se registran aquí.
 - Landing editorial de Wandra con navegación, rituales, sabores, packs y newsletter.
 - Catálogo de 14 productos importado del export de WooCommerce, con SKU, formatos y precios.
 - Rutas individuales indexables para cada producto.
-- Blog con guías de kombucha y ghee, además de preguntas frecuentes visibles.
+- Blog con guías de Mateo y ghee, además de preguntas frecuentes visibles.
 - Metadatos SEO, canonical, Open Graph, Twitter Cards, `robots.txt`, `sitemap.xml` y datos estructurados de tienda, productos, artículos y FAQ.
 - Imágenes WebP optimizadas para la portada y carpeta preparada para carga en Cloudinary.
 
