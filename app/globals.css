@@ -154,7 +154,7 @@ h1,h2{line-height:.86}
 /* Kombucha editorial hero and route navigation. */
 .site-header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:clamp(18px,3vw,52px);padding:15px 5vw;background:rgba(255,246,231,.98);color:var(--black);border-bottom:1px solid rgba(49,29,27,.12);backdrop-filter:blur(12px)}
 .site-header .brand-logo{width:118px;height:64px;padding:5px 0}
-.site-header .brand-logo img{filter:none;drop-shadow:none}
+.site-header .brand-logo img{filter:none}
 .menu-toggle{display:none;border:0;background:none;color:inherit;font-family:'Oswald',Arial,sans-serif;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
 .main-navigation{display:flex;align-items:center;justify-content:center;gap:clamp(18px,2.4vw,42px)}
 .main-navigation a,.header-actions a{font-family:'Oswald',Arial,sans-serif;font-size:.88rem;font-weight:500;letter-spacing:.07em;text-transform:uppercase;transition:color .2s ease}
