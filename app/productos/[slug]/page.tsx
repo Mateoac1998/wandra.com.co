@@ -1,28 +1,119 @@
+import MediaImage from '@/components/media-image';
+
+import Link from 'next/link';
+
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { formatCOP, getProduct, products } from '@/lib/catalog';
+import { getProduct, products } from '@/lib/catalog';
 import { absoluteUrl, site } from '@/lib/site';
+import { BuyProduct } from '@/components/storefront';
 
 type Props = { params: Promise<{ slug: string }> };
-
-export function generateStaticParams() { return products.map(({ slug }) => ({ slug })); }
+export function generateStaticParams() {
+  return products.map(({ slug }) => ({ slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = getProduct((await params).slug);
   if (!product) return {};
-  const title = `${product.name} | ${site.shortName}`;
-  return { title, description: product.description, alternates: { canonical: `/productos/${product.slug}` }, openGraph: { title, description: product.description, url: `/productos/${product.slug}`, images: [{ url: product.image, alt: product.name }] } };
+  return {
+    title: product.name,
+    description: product.description,
+    alternates: { canonical: `/productos/${product.slug}` },
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      url: `/productos/${product.slug}`,
+      images: [{ url: product.image, alt: product.name }],
+    },
+  };
 }
 
 export default async function ProductPage({ params }: Props) {
   const product = getProduct((await params).slug);
   if (!product) notFound();
-  const lowestPrice = Math.min(...product.variants.map((variant) => variant.price));
-  const schema = {
-    '@context': 'https://schema.org', '@type': 'Product', name: product.name, sku: product.sku,
-    image: absoluteUrl(product.image), description: product.description,
-    brand: { '@type': 'Brand', name: site.shortName },
-    offers: product.variants.map((variant) => ({ '@type': 'Offer', url: absoluteUrl(`/productos/${product.slug}`), priceCurrency: 'COP', price: variant.price, sku: variant.sku, name: `${product.name} · ${variant.label}`, availability: 'https://schema.org/InStock', itemCondition: 'https://schema.org/NewCondition' })),
-  };
-  return <main className="content-page product-page"><header className="product-top"><a className="mini-logo" href="/" aria-label="Volver al inicio">Wandra</a><a className="back-link" href="/productos">← Todos los productos</a></header><article className="product-detail"><div className="product-media"><img src={product.image} alt={product.name} fetchPriority="high" /></div><div className="product-copy"><p className="eyebrow">{product.category}</p><h1>{product.name}</h1><p className="product-description">{product.description}</p><div className="variant-list" aria-label="Presentaciones y precios">{product.variants.map((variant) => <div key={variant.sku}><span>{variant.label}</span><strong>{formatCOP(variant.price)}</strong></div>)}</div><p className="product-note">Precio desde {formatCOP(lowestPrice)}. La disponibilidad, ingredientes y condiciones de envío se confirmarán en el checkout.</p><a className="button button-dark" href="/#comprar">Consultar compra</a></div></article><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} /></main>;
+  const url = absoluteUrl(`/productos/${product.slug}`);
+  const schema = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      sku: product.sku,
+      image: absoluteUrl(product.image),
+      description: product.description,
+      url,
+      brand: { '@type': 'Brand', name: site.shortName },
+      offers: product.variants.map((variant) => ({
+        '@type': 'Offer',
+        url,
+        priceCurrency: 'COP',
+        price: variant.price,
+        sku: variant.sku,
+        name: `${product.name} · ${variant.label}`,
+        itemCondition: 'https://schema.org/NewCondition',
+      })),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Inicio',
+          item: absoluteUrl('/'),
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Productos',
+          item: absoluteUrl('/productos'),
+        },
+        { '@type': 'ListItem', position: 3, name: product.name, item: url },
+      ],
+    },
+  ];
+  return (
+    <main id="contenido" className="content-page product-page">
+      <header className="product-top">
+        <Link prefetch={false} className="back-link" href="/productos">
+          ← Todos los productos
+        </Link>
+        <span className="eyebrow">La despensa Wandra</span>
+      </header>
+      <article className="product-detail">
+        <div className="product-media">
+          <MediaImage
+            src={product.image}
+            alt={product.name}
+            width="800"
+            height="850"
+            fetchPriority="high"
+          />
+        </div>
+        <div className="product-copy">
+          <p className="eyebrow">{product.category}</p>
+          <h1>{product.name}</h1>
+          <p className="product-description">{product.description}</p>
+          <BuyProduct product={product} />
+          <p className="product-note">
+            Precios en pesos colombianos. Consulta con Wandra la disponibilidad,
+            los ingredientes y el envío a tu ciudad. El pago en línea aún no
+            está habilitado.
+          </p>
+          <Link
+            prefetch={false}
+            className="underlined-link"
+            href="/preguntas-frecuentes"
+          >
+            Resolvemos tus dudas ↗
+          </Link>
+        </div>
+      </article>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+    </main>
+  );
 }

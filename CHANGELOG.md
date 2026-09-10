@@ -2,6 +2,25 @@
 
 Todas las versiones relevantes de Wandra se registran aquí.
 
+## 0.2.0 — 2026-09-10
+
+### Añadido
+
+- Nuevo recorrido editorial inspirado en las referencias aprobadas: hero por diapositivas, marqués, composición circular, carrusel de sabores, despensa, packs, guías y cierre de entrega.
+- Bolsa de selección con presentaciones, cantidades y subtotal, preparada para una futura integración de pagos.
+- Navegación responsive, controles táctiles y respeto por la preferencia de movimiento reducido.
+- Sitemap dinámico, redirecciones desde las rutas temporales de Mateo, tipografías locales y datos estructurados actualizados.
+
+### Mejorado
+
+- Catálogo y fichas de producto con precios, tamaños y acciones de compra más claros en móvil.
+- Optimización de las imágenes locales y espacios preparados para enlaces de Cloudinary o recursos transparentes.
+
+### Pendiente de información comercial
+
+- Integración de checkout, pagos, inventario, envíos y políticas definitivas.
+- Recursos definitivos de Cloudinary para las fotografías de producto marcadas como pendientes.
+
 ## 0.1.2 — 2026-09-05
 
 ### Corregido

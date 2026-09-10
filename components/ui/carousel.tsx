@@ -77,6 +77,8 @@ function Carousel({
 
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
+      // Preserve native radio/input arrow-key behavior inside a product card.
+      if ((event.target as HTMLElement).closest('input, select, textarea')) return;
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
         scrollPrev();
