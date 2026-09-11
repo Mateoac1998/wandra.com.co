@@ -23,8 +23,11 @@ export default function RootLayout({
   const organizationSchema = {
     '@context': 'https://schema.org', '@type': 'OnlineStore', name: site.name,
     alternateName: site.shortName, url: SITE_URL, logo: site.logo,
-    sameAs: [site.instagram, site.facebook].filter(Boolean),
-    hasMerchantReturnPolicy: undefined,
+    sameAs: [site.instagram, site.facebook, site.tiktok, site.pinterest].filter(Boolean),
+    email: site.email,
+    telephone: '+57 321 432 0429',
+    address: { '@type': 'PostalAddress', addressLocality: 'Armenia', addressRegion: 'Quindío', addressCountry: 'CO' },
+    contactPoint: [{ '@type': 'ContactPoint', telephone: '+57 321 432 0429', email: site.email, contactType: 'sales', availableLanguage: 'es' }],
   };
   return <html lang="es-CO"><body>{children}<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} /></body></html>;
 }

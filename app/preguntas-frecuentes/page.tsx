@@ -3,8 +3,9 @@ import { site } from '@/lib/site';
 
 const questions = [
   { question: '¿Qué es la kombucha?', answer: 'La kombucha es una bebida fermentada elaborada a partir de té endulzado y un cultivo vivo conocido como SCOBY. Su perfil suele ser ácido, ligeramente dulce y efervescente.' },
-  { question: '¿Cómo se conserva la kombucha?', answer: 'Mantén el producto refrigerado y consulta la etiqueta para conocer las recomendaciones de cada presentación.' },
-  { question: '¿Qué tamaños de kombucha ofrece Wandra?', answer: 'Las kombuchas Café, Jengibre y Flor de Jamaica están disponibles en presentaciones de 280 ml y 500 ml. También hay packs de seis botellas.' },
+  { question: '¿Cómo se conserva la kombucha?', answer: 'Mantén el producto refrigerado entre 0 y 6 °C. Es un producto vivo, no pasteurizado. Su vida útil es de 4 meses desde la fecha de elaboración si se mantiene refrigerado.' },
+  { question: '¿Qué sabores y tamaños de kombucha ofrece Wandra?', answer: 'La línea incluye Jengibre, Flor de Jamaica, Café, Original y Dragon Fruit. Para negocios se manejan formatos de 280 ml, 500 ml y 1.000 ml. La presentación de 750 ml está próxima a disponibilidad.' },
+  { question: '¿Hacen envíos nacionales?', answer: 'Sí. Wandra despacha desde Armenia, Quindío, a nivel nacional. El valor del envío y el tiempo final se confirman en la cotización según el destino y el pedido.' },
   { question: '¿Wandra vende otros productos además de kombucha?', answer: 'Sí. El catálogo incluye ghee, aceites naturales, mantequillas de macadamia, maní y ajonjolí, y leche dorada.' },
   { question: '¿Dónde puedo consultar ingredientes y precios?', answer: 'Cada página de producto reúne sus presentaciones, precios desde el catálogo y una descripción. La información final de ingredientes y disponibilidad debe confirmarse en la etiqueta y durante la compra.' },
   { question: '¿Puedo consumir kombucha si tengo una condición médica?', answer: 'La kombucha es un alimento, no un medicamento. Si estás en embarazo, lactancia o tienes una condición médica, consulta a un profesional de la salud antes de cambiar tu alimentación.' },

@@ -2,6 +2,27 @@
 
 Todas las versiones relevantes de Wandra se registran aquí.
 
+## 0.2.1 — 2026-09-11
+
+### Añadido
+
+- Catálogo B2B para restaurantes, cafés, hoteles y tiendas saludables, con sabores, formatos, precios de distribuidor, PVP sugerido y márgenes confirmados.
+- Página de políticas que cubre envíos, conservación, devoluciones, términos de compra y tratamiento de datos.
+- Datos de contacto comercial, ubicación en Armenia, Quindío, y accesos directos por WhatsApp para compra y mayoristas.
+- Registro sanitario INVIMA de la línea de kombucha en las fichas de producto y datos estructurados de la tienda.
+
+### Mejorado
+
+- Sección B2B de la portada y página mayorista con condiciones comerciales verificadas: conservación, vida útil, pagos, devolución y plazo estimado.
+- Navegación móvil con un panel de alto contraste, enlaces visibles y sin superposición del contenido.
+- SEO técnico: `sitemap.xml` ampliado, enlaces de políticas y datos estructurados de organización actualizados.
+- Botones de producto que preparan el mensaje de WhatsApp con el artículo consultado; redes sociales fijas y botón de WhatsApp refinado.
+
+### Pendiente de información comercial
+
+- Códigos de barras, umbral definitivo de envío gratuito para distribuidores y condiciones/capacidades del Tap System.
+- Vigencia final de los precios sugeridos al consumidor y fotografías de barriles.
+
 ## 0.1.2 — 2026-09-05
 
 ### Corregido
