@@ -270,3 +270,43 @@ h1,h2{line-height:.86}
 @media(max-width:900px){.more-products-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.more-product-image{aspect-ratio:1 / 1!important}.kombucha-hero .hero-bottle>img{object-position:60% center!important}}
 @media(max-width:560px){.more-products-grid{grid-template-columns:1fr!important}.more-product-image{aspect-ratio:4 / 3!important;padding:18px!important}.more-product-card>b{top:auto!important;bottom:58px!important}}
 
+/* B2B offer card: compact, legible layout on phones and narrow tablets. */
+@media(max-width:700px){
+  .business-section{overflow:hidden}
+  .business-copy{padding:58px 7vw 46px}
+  .business-offer{padding:0 5vw 58px}
+  .business-offer section{padding:28px 20px;border-radius:16px}
+  .business-offer h3{font-size:clamp(1.35rem,5.7vw,1.9rem);line-height:1.1}
+  .business-pills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:30px}
+  .business-pills span{display:flex;min-width:0;min-height:48px;align-items:center;justify-content:center;padding:8px 6px;text-align:center;font-size:.96rem;white-space:nowrap}
+  .business-note{padding-top:26px}
+  .business-note h3{max-width:18ch}
+  .business-note p{font-size:1rem;line-height:1.55}
+}
+@media(max-width:430px){
+  .business-copy{padding:50px 7vw 42px}
+  .business-offer{padding-right:4vw;padding-bottom:50px;padding-left:4vw}
+  .business-offer section{padding:24px 18px}
+  .business-pills{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .business-pills span{min-height:46px;font-size:.92rem}
+  .business-offer h3{font-size:clamp(1.28rem,6.5vw,1.65rem)}
+}
+
+/* The business block must never keep desktop-width text on a phone. */
+.mobile-break{display:none}
+.business-copy,.business-offer,.business-benefits>div,.business-benefits span{min-width:0}
+.business-copy h2,.business-copy>p,.business-benefits strong,.business-benefits small,.business-actions .button{overflow-wrap:anywhere}
+.whatsapp-float{position:fixed;right:20px;bottom:20px;z-index:30;display:grid;width:54px;height:54px;place-items:center;border:1px solid rgba(255,250,242,.38);border-radius:50%;background:#2a837c;color:var(--cream);box-shadow:0 10px 25px rgba(47,45,41,.25);font-size:1.4rem;line-height:1;transition:transform .2s ease,background-color .2s ease}.whatsapp-float:hover{background:#236f69;transform:translateY(-3px)}
+@media(max-width:700px){
+  .mobile-break{display:block}
+  .business-copy h2{font-size:clamp(2.35rem,10vw,3.6rem)!important;letter-spacing:-.045em;line-height:.97}
+  .business-copy>p:not(.eyebrow){max-width:100%;font-size:1rem!important;line-height:1.5}
+  .business-benefits{gap:22px}
+  .business-benefits>div{gap:14px}
+  .business-benefits b{flex-basis:44px;width:44px;height:44px}
+  .business-benefits strong{font-size:clamp(1.1rem,5vw,1.4rem);line-height:1.1}
+  .business-benefits small{font-size:.96rem;line-height:1.45}
+  .business-actions .button{min-height:56px;padding:12px 16px;font-size:.78rem;line-height:1.25;white-space:normal;text-align:center}
+  .whatsapp-float{right:16px;bottom:16px;width:52px;height:52px}
+}
+
