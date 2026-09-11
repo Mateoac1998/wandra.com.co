@@ -1,7 +1,7 @@
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'mk5klko9';
 const uploadRoot = `https://res.cloudinary.com/${cloudName}/image/upload`;
 
-function cloudinaryAsset(version: string, publicId: string, format = 'f_auto,q_auto') {
+function cloudinaryAsset(version: string, publicId: string, format = 'f_auto,q_auto,w_1600,c_limit') {
   return `${uploadRoot}/${format}/${version}/${publicId}`;
 }
 
@@ -10,7 +10,7 @@ function cloudinaryAsset(version: string, publicId: string, format = 'f_auto,q_a
 export const media = {
   // Monograma WHS original, sin la ilustración de la india.
   logo: '/assets/wandra-logo-web.png',
-  hero: cloudinaryAsset('v1788908562', 'MST0997911.jpg'),
+  hero: cloudinaryAsset('v1788908562', 'MST0997911.jpg', 'f_auto,q_auto,w_2400,c_limit'),
   origin: cloudinaryAsset('v1789126597', 'Scooby_Wandra.png'),
   ritualVideo: cloudinaryAsset('v1789127546', 'IMG20250227153443_1.jpg'),
   ritual: cloudinaryAsset('v1788908564', 'MST0009711.jpg'),
@@ -27,3 +27,4 @@ export const media = {
   ginger: cloudinaryAsset('v1788908563', 'MST0004511.jpg'),
   gingerAlternate: cloudinaryAsset('v1788908088', 'kombucha_jengibre_280_ml_3.jpg'),
 };
+

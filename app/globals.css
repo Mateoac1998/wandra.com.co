@@ -252,3 +252,21 @@ h1,h2{line-height:.86}
 .more-product-card>b{top:calc(78% - 52px)}
 @media(max-width:900px){.more-product-card>b{top:calc(78% - 52px)}}
 @media(max-width:560px){.more-product-card>b{top:auto;bottom:50px}}
+
+/* Stable production media: never leave a section off-screen or let a source image dictate its layout. */
+.kombucha-hero .hero-copy,.kombucha-hero .hero-bottle-stage{animation:none!important;opacity:1!important;transform:none!important}
+.kombucha-hero .hero-bottle-stage{background:var(--wine-dark)}
+.kombucha-hero .hero-bottle,.kombucha-hero .hero-bottle>img{display:block!important;width:100%!important;height:100%!important}
+.kombucha-hero .hero-bottle>img{object-fit:cover!important;object-position:center right!important}
+.asset-slot{isolation:isolate}
+.asset-slot>img{display:block;max-width:none}
+.more-products{overflow:hidden}
+.more-products-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;width:100%;align-items:start}
+.more-product-card{display:grid!important;min-width:0!important;overflow:hidden}
+.more-product-image{position:relative!important;display:block!important;width:100%!important;height:auto!important;aspect-ratio:4 / 5!important;overflow:hidden!important;padding:22px!important}
+.more-product-image img{position:relative!important;display:block!important;width:100%!important;height:100%!important;max-width:none!important;object-fit:contain!important;object-position:center!important;transform:none!important}
+.product-slot,.pack-image,.share-pack-image,.pause-image,.ritual-image,.video-slot,.origin-image,.club-image{overflow:hidden}
+.product-slot>img,.pack-image>img{object-fit:contain!important;object-position:center!important}
+@media(max-width:900px){.more-products-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.more-product-image{aspect-ratio:1 / 1!important}.kombucha-hero .hero-bottle>img{object-position:60% center!important}}
+@media(max-width:560px){.more-products-grid{grid-template-columns:1fr!important}.more-product-image{aspect-ratio:4 / 3!important;padding:18px!important}.more-product-card>b{top:auto!important;bottom:58px!important}}
+
