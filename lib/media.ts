@@ -1,4 +1,7 @@
-const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'mk5klko9';
+// These are the approved public Wandra assets. Keep the delivery account fixed
+// here: NEXT_PUBLIC_* values are compiled by Vercel and a stale project setting
+// must never redirect the storefront to another Cloudinary account.
+const cloudName = 'mk5klko9';
 const uploadRoot = `https://res.cloudinary.com/${cloudName}/image/upload`;
 
 function cloudinaryAsset(version: string, publicId: string, format = 'f_auto,q_auto,w_1600,c_limit') {

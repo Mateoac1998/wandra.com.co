@@ -2,6 +2,14 @@
 
 Todas las versiones relevantes de Wandra se registran aquí.
 
+## 0.2.2 — 2026-09-11
+
+### Corregido
+
+- Las imágenes públicas de Wandra usan de forma consistente la cuenta aprobada de Cloudinary, sin depender de una variable de entorno pública de Vercel que pueda redirigirlas a otra cuenta.
+- Los recursos de imagen ahora muestran un respaldo visual si su carga falla, en lugar de dejar una sección rota.
+- Los íconos de redes sociales tienen dimensiones explícitas para impedir que un estilo incompleto o en caché los expanda sobre el hero.
+
 ## 0.2.1 — 2026-09-11
 
 ### Añadido

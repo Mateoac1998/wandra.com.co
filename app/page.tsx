@@ -7,9 +7,11 @@ import { site, whatsappProductUrl, whatsappWholesaleUrl } from '@/lib/site';
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '@/components/social-icons';
 
 function AssetSlot({ className = '', children, source, alt = '' }: { className?: string; children?: ReactNode; source?: string; alt?: string }) {
+  const [failed, setFailed] = useState(false);
   const loading = className.includes('hero-bottle') ? 'eager' : 'lazy';
-  return <div className={`asset-slot ${source ? 'has-source' : ''} ${className}`}>
-    {source ? <img alt={alt} src={source} loading={loading} decoding="async" fetchPriority={loading === 'eager' ? 'high' : 'auto'} /> : <span className="asset-fallback" aria-hidden="true">{children}</span>}
+  const canRenderSource = Boolean(source) && !failed;
+  return <div className={`asset-slot ${canRenderSource ? 'has-source' : ''} ${className}`}>
+    {canRenderSource ? <img alt={alt} src={source} loading={loading} decoding="async" fetchPriority={loading === 'eager' ? 'high' : 'auto'} onError={() => setFailed(true)} /> : <span className="asset-fallback" aria-hidden="true">{children}</span>}
   </div>;
 }
 
