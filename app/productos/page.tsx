@@ -20,4 +20,3 @@ export default function ProductsPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'ItemList', name: 'Productos Wandra', itemListElement: products.map((product, index) => ({ '@type': 'ListItem', position: index + 1, url: absoluteUrl(`/productos/${product.slug}`), name: product.name })) }) }} />
   </main>;
 }
-

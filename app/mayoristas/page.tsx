@@ -1,17 +1,21 @@
 import type { Metadata } from 'next';
+import { site } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Mayoristas | Wandra',
-  description: 'Conoce las opciones mayoristas de Wandra para tu negocio.',
+  title: 'Kombucha mayorista para restaurantes, cafés y hoteles | Wandra',
+  description: 'Kombucha artesanal mayorista en Colombia para restaurantes, cafés, hoteles y tiendas saludables. Botellas y opciones de Tap System.',
   alternates: { canonical: '/mayoristas' },
 };
 
 export default function MayoristasPage() {
+  const catalogUrl = site.whatsapp || '/contacto';
+  const externalCatalog = Boolean(site.whatsapp);
   return <main className="content-page">
-    <header className="article-header"><a className="mini-logo" href="/" aria-label="Volver al inicio">Wandra</a><p className="eyebrow">Wandra para negocios</p><h1>LLEVA EL RITUAL<br /><i>A TU ESPACIO</i></h1><p>Si tienes una tienda, café, restaurante o proyecto de bienestar, hablemos sobre una selección de Wandra para tus clientes.</p></header>
+    <header className="article-header"><a className="mini-logo" href="/" aria-label="Volver al inicio">Wandra</a><p className="eyebrow">Kombucha para negocios</p><h1>KOMBUCHA PARA<br /><i>TU NEGOCIO</i></h1><p>Una propuesta de kombucha artesanal para restaurantes, cafés, hoteles y tiendas saludables en Colombia.</p></header>
     <article className="article-body">
-      <section><p className="eyebrow">Alianzas</p><h2>PRODUCTOS PARA COMPARTIR</h2><p>Te acompañamos para encontrar presentaciones y productos acordes a tu negocio. Cuéntanos sobre tu proyecto, ciudad y el tipo de selección que buscas.</p></section>
-      <a className="button button-wine" href="https://www.instagram.com/wandra_herencia_saludable/" target="_blank" rel="noreferrer">Escríbenos por Instagram</a>
+      <section><p className="eyebrow">Alianzas</p><h2>PRODUCTOS PARA COMPARTIR</h2><p>Te acompañamos a encontrar presentaciones y productos acordes a tu operación. Cuéntanos sobre tu proyecto, ciudad, volumen y el tipo de selección que buscas.</p></section>
+      <section id="catalogo"><p className="eyebrow">Formatos</p><h2>BOTELLAS Y TAP SYSTEM</h2><p>Disponemos de botellas para carta, vitrina y venta directa. Para establecimientos con servicio por copa, conversemos sobre disponibilidad de barriles para sistemas de presión.</p></section>
+      <a className="button button-wine" href={catalogUrl} target={externalCatalog ? '_blank' : undefined} rel={externalCatalog ? 'noreferrer' : undefined}>Solicitar catálogo mayorista por WhatsApp</a>
     </article>
   </main>;
 }
