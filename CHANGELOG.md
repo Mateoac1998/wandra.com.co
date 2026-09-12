@@ -2,6 +2,19 @@
 
 Todas las versiones relevantes de Wandra se registran aquí.
 
+## 0.3.0 — 2026-09-12
+
+### Añadido
+
+- Primera etapa de ecommerce: carrito persistente, selector de presentación por producto, checkout de datos de compra/facturación y página de resultado de pago.
+- Endpoint de servidor para Checkout Pro de Mercado Pago vía Orders API. El precio se vuelve a calcular con el catálogo del servidor antes de crear cada orden.
+- Variables de entorno documentadas para activar Mercado Pago desde Vercel sin exponer el Access Token en el navegador o repositorio.
+
+### Operación inicial
+
+- El valor del envío no se cobra todavía en checkout: se confirma antes del despacho, con envío incluido desde $250.000 sujeto a cobertura.
+- Pedidos B2B/Majoristas continúan por cotización directa.
+
 ## 0.2.2 — 2026-09-11
 
 ### Corregido
