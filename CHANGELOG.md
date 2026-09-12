@@ -2,6 +2,13 @@
 
 Todas las versiones relevantes de Wandra se registran aquí.
 
+## 0.3.1 — 2026-09-12
+
+### Corregido
+
+- El checkout ahora utiliza Checkout Pro vía Preferences API, el flujo clásico de redirección de Mercado Pago.
+- Se conserva el Access Token privado en Vercel y el navegador recibe únicamente la URL segura de pago (`init_point`).
+
 ## 0.3.0 — 2026-09-12
 
 ### Añadido

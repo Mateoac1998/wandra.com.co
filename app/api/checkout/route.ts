@@ -36,28 +36,30 @@ export async function POST(request: Request) {
 
   const items = [...requested.entries()].map(([sku, quantity]) => {
     const entry = variantIndex.get(sku)!;
-    return { external_code: sku, title: `${entry.product.name} · ${entry.variant.label}`, description: entry.product.description, quantity, unit_price: String(entry.variant.price) };
+    return { id: sku, title: `${entry.product.name} · ${entry.variant.label}`, description: entry.product.description, quantity, currency_id: 'COP', unit_price: entry.variant.price };
   });
-  const total = items.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0);
   const reference = `WHS-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   const safeCustomer = customer as Required<NonNullable<CheckoutInput['customer']>>;
   const [firstName, ...lastName] = safeCustomer.fullName.trim().split(/\s+/);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
 
-  const response = await fetch('https://api.mercadopago.com/v1/orders', {
+  // Checkout Pro via Preferences keeps the classic redirect flow for this store.
+  // The Access Token stays server-side; the browser only receives init_point.
+  const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      type: 'online', processing_mode: 'manual', capture_mode: 'automatic_async', total_amount: String(total), external_reference: reference,
-      payer: { email: safeCustomer.email.trim(), first_name: firstName, last_name: lastName.join(' '), phone: { number: safeCustomer.phone.trim() }, identification: { type: safeCustomer.documentType, number: safeCustomer.documentNumber.trim() }, address: { street_name: safeCustomer.address.trim(), city: safeCustomer.city.trim() } },
       items,
-      config: { online: { success_url: `${baseUrl}/compra/resultado?estado=aprobado&referencia=${reference}`, failure_url: `${baseUrl}/compra/resultado?estado=rechazado&referencia=${reference}`, pending_url: `${baseUrl}/compra/resultado?estado=pendiente&referencia=${reference}`, auto_return: 'approved' } },
+      external_reference: reference,
+      payer: { name: firstName, surname: lastName.join(' '), email: safeCustomer.email.trim(), phone: { number: safeCustomer.phone.trim() }, identification: { type: safeCustomer.documentType, number: safeCustomer.documentNumber.trim() } },
+      back_urls: { success: `${baseUrl}/compra/resultado?estado=aprobado&referencia=${reference}`, failure: `${baseUrl}/compra/resultado?estado=rechazado&referencia=${reference}`, pending: `${baseUrl}/compra/resultado?estado=pendiente&referencia=${reference}` },
+      auto_return: 'approved',
     }),
   });
-  const result = await response.json().catch(() => null) as { checkout_url?: string } | null;
-  if (!response.ok || !result?.checkout_url) {
-    console.error('Mercado Pago order error', response.status, result);
+  const result = await response.json().catch(() => null) as { init_point?: string } | null;
+  if (!response.ok || !result?.init_point) {
+    console.error('Mercado Pago preference error', response.status, result);
     return NextResponse.json({ error: 'No fue posible iniciar el pago. Verifica la configuración de Mercado Pago e inténtalo nuevamente.' }, { status: 502 });
   }
-  return NextResponse.json({ checkoutUrl: result.checkout_url, reference });
+  return NextResponse.json({ checkoutUrl: result.init_point, reference });
 }
