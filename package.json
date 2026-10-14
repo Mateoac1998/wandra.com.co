@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "oxlint",
+    "test:checkout": "node --test tests/checkout-route.test.mjs",
     "format": "oxfmt"
   },
   "dependencies": {
