@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { products } from '@/lib/catalog';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 
 export const runtime = 'nodejs';
 
@@ -34,25 +35,54 @@ export async function POST(request: Request) {
     requested.set(sku, Math.min((requested.get(sku) || 0) + quantity, 24));
   }
 
+  // Prices are always rebuilt from the server catalog, not trusted from the browser.
   const items = [...requested.entries()].map(([sku, quantity]) => {
     const entry = variantIndex.get(sku)!;
     return { id: sku, title: `${entry.product.name} · ${entry.variant.label}`, description: entry.product.description, quantity, currency_id: 'COP', unit_price: entry.variant.price };
   });
-  const reference = `WHS-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+  const totalAmount = items.reduce((total, item) => total + (item.unit_price * item.quantity), 0);
   const safeCustomer = customer as Required<NonNullable<CheckoutInput['customer']>>;
+
+  let orderId: string;
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        customer_name: safeCustomer.fullName.trim(),
+        customer_email: safeCustomer.email.trim(),
+        customer_phone: safeCustomer.phone.trim(),
+        shipping_address: safeCustomer.address.trim(),
+        shipping_city: safeCustomer.city.trim(),
+        total_amount: totalAmount,
+        status: 'pending',
+        items,
+      })
+      .select('id')
+      .single();
+
+    if (orderError || !order) {
+      console.error('Supabase order error', orderError);
+      return NextResponse.json({ error: 'No fue posible registrar el pedido.' }, { status: 500 });
+    }
+    orderId = order.id;
+  } catch (error) {
+    console.error('Supabase configuration error', error);
+    return NextResponse.json({ error: 'La base de datos no está configurada correctamente.' }, { status: 503 });
+  }
+
   const [firstName, ...lastName] = safeCustomer.fullName.trim().split(/\s+/);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
 
-  // Checkout Pro via Preferences keeps the classic redirect flow for this store.
-  // The Access Token stays server-side; the browser only receives init_point.
   const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       items,
-      external_reference: reference,
+      external_reference: orderId,
+      notification_url: `${baseUrl}/api/webhooks/mercadopago`,
       payer: { name: firstName, surname: lastName.join(' '), email: safeCustomer.email.trim(), phone: { number: safeCustomer.phone.trim() }, identification: { type: safeCustomer.documentType, number: safeCustomer.documentNumber.trim() } },
-      back_urls: { success: `${baseUrl}/compra/resultado?estado=aprobado&referencia=${reference}`, failure: `${baseUrl}/compra/resultado?estado=rechazado&referencia=${reference}`, pending: `${baseUrl}/compra/resultado?estado=pendiente&referencia=${reference}` },
+      back_urls: { success: `${baseUrl}/compra/resultado?estado=aprobado&referencia=${orderId}`, failure: `${baseUrl}/compra/resultado?estado=rechazado&referencia=${orderId}`, pending: `${baseUrl}/compra/resultado?estado=pendiente&referencia=${orderId}` },
       auto_return: 'approved',
     }),
   });
@@ -61,5 +91,6 @@ export async function POST(request: Request) {
     console.error('Mercado Pago preference error', response.status, result);
     return NextResponse.json({ error: 'No fue posible iniciar el pago. Verifica la configuración de Mercado Pago e inténtalo nuevamente.' }, { status: 502 });
   }
-  return NextResponse.json({ checkoutUrl: result.init_point, reference });
+
+  return NextResponse.json({ init_point: result.init_point, orderId });
 }
