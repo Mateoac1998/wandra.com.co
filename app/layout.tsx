@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { Toaster } from 'sonner';
 import { site, SITE_URL } from '@/lib/site';
 import { media } from '@/lib/media';
 
@@ -29,5 +30,5 @@ export default function RootLayout({
     address: { '@type': 'PostalAddress', addressLocality: 'Armenia', addressRegion: 'Quindío', addressCountry: 'CO' },
     contactPoint: [{ '@type': 'ContactPoint', telephone: '+57 321 432 0429', email: site.email, contactType: 'sales', availableLanguage: 'es' }],
   };
-  return <html lang="es-CO"><body>{children}<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} /></body></html>;
+  return <html lang="es-CO"><body>{children}<Toaster position="bottom-center" closeButton /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} /></body></html>;
 }
