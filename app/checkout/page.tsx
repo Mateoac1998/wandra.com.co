@@ -21,9 +21,10 @@ export default function CheckoutPage() {
     setError(''); setLoading(true);
     try {
       const response = await fetch('/api/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: lines.map(({ sku, quantity }) => ({ sku, quantity })), customer: form }) });
-      const result = await response.json() as { checkoutUrl?: string; error?: string };
-      if (!response.ok || !result.checkoutUrl) throw new Error(result.error || 'No fue posible abrir el pago.');
-      window.location.assign(result.checkoutUrl);
+      const data = await response.json().catch(() => ({})) as { init_point?: string; error?: string };
+      if (!response.ok) throw new Error(data.error || 'No fue posible iniciar el pago.');
+      if (!data.init_point) throw new Error('Mercado Pago no devolvió la URL de pago.');
+      window.location.href = data.init_point;
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'No fue posible abrir el pago.');
       setLoading(false);
