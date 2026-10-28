@@ -1,6 +1,7 @@
 'use client';
 
 import { type ReactNode, useState } from 'react';
+import { toast } from 'sonner';
 import { addToCart } from '@/lib/cart';
 import { products } from '@/lib/catalog';
 
@@ -10,6 +11,7 @@ export function QuickAddToCart({ sku, className, children }: { sku: string; clas
   if (!entry) return null;
   const add = () => {
     addToCart({ sku: entry.variant.sku, productSlug: entry.product.slug, name: entry.product.name, variant: entry.variant.label, price: entry.variant.price, image: entry.product.image });
+    toast.success('Producto agregado a tu bolsa', { description: 'Puedes continuar comprando o finalizar tu pedido cuando quieras.' });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1800);
   };
