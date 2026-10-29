@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
-import { products } from '@/lib/catalog';
+import { products } from '../../../lib/catalog';
 import { getSupabaseAdmin } from '../../../lib/supabase/admin';
+import { getShippingRates, ShippingQuoteError, type ShippingRate } from '../../../lib/envia';
 
 export const runtime = 'nodejs';
 
 type CheckoutInput = {
   items?: { sku?: string; quantity?: number }[];
-  customer?: { fullName?: string; email?: string; phone?: string; documentType?: string; documentNumber?: string; city?: string; address?: string };
+  customer?: { fullName?: string; email?: string; phone?: string; documentType?: string; documentNumber?: string; city?: string; postalCode?: string; address?: string };
+  shipping?: { optionId?: string };
 };
 
 const variantIndex = new Map(products.flatMap((product) => product.variants.map((variant) => [variant.sku, { product, variant }] as const)));
@@ -20,8 +22,8 @@ export async function POST(request: Request) {
   let input: CheckoutInput;
   try { input = await request.json(); } catch { return NextResponse.json({ error: 'Solicitud inválida.' }, { status: 400 }); }
   const customer = input.customer;
-  if (!customer || !required(customer.fullName) || !required(customer.email) || !required(customer.phone) || !required(customer.documentType) || !required(customer.documentNumber) || !required(customer.city) || !required(customer.address)) {
-    return NextResponse.json({ error: 'Completa los datos requeridos para la compra y la factura.' }, { status: 400 });
+  if (!customer || !required(customer.fullName) || !required(customer.email) || !required(customer.phone) || !required(customer.documentType) || !required(customer.documentNumber) || !required(customer.city) || !required(customer.postalCode) || !required(customer.address)) {
+    return NextResponse.json({ error: 'Completa los datos requeridos para la compra, la factura y el envío.' }, { status: 400 });
   }
   if (!Array.isArray(input.items) || !input.items.length) return NextResponse.json({ error: 'Tu carrito está vacío.' }, { status: 400 });
 
@@ -35,13 +37,43 @@ export async function POST(request: Request) {
     requested.set(sku, Math.min((requested.get(sku) || 0) + quantity, 24));
   }
 
-  // Prices are always rebuilt from the server catalog, not trusted from the browser.
+  // Prices are rebuilt from the server catalog, never trusted from the browser.
   const items = [...requested.entries()].map(([sku, quantity]) => {
     const entry = variantIndex.get(sku)!;
     return { id: sku, title: `${entry.product.name} · ${entry.variant.label}`, description: entry.product.description, quantity, currency_id: 'COP', unit_price: entry.variant.price };
   });
-  const totalAmount = items.reduce((total, item) => total + (item.unit_price * item.quantity), 0);
   const safeCustomer = customer as Required<NonNullable<CheckoutInput['customer']>>;
+
+  let shippingRate: ShippingRate;
+  try {
+    const rates = await getShippingRates({
+      city: safeCustomer.city,
+      postalCode: safeCustomer.postalCode,
+      address: safeCustomer.address,
+      items,
+    });
+    shippingRate = rates.find((rate) => rate.id === input.shipping?.optionId);
+    if (!shippingRate) {
+      return NextResponse.json({ error: 'La tarifa seleccionada ya no está disponible. Vuelve a cotizar el envío.' }, { status: 400 });
+    }
+  } catch (error) {
+    const message = error instanceof ShippingQuoteError
+      ? error.message
+      : 'No fue posible verificar la tarifa de envío.';
+    console.error('Shipping checkout error', error);
+    return NextResponse.json({ error: message }, { status: 422 });
+  }
+
+  const shippingItem = {
+    id: `shipping-${shippingRate.id}`,
+    title: `Envío · ${shippingRate.carrier} ${shippingRate.service}`,
+    description: shippingRate.deliveryDays ? `Entrega estimada: ${shippingRate.deliveryDays} días` : 'Entrega nacional',
+    quantity: 1,
+    currency_id: 'COP',
+    unit_price: shippingRate.price,
+  };
+  const paymentItems = [...items, shippingItem];
+  const totalAmount = paymentItems.reduce((total, item) => total + (item.unit_price * item.quantity), 0);
 
   let orderId: string;
   try {
@@ -52,11 +84,11 @@ export async function POST(request: Request) {
         customer_name: safeCustomer.fullName.trim(),
         customer_email: safeCustomer.email.trim(),
         customer_phone: safeCustomer.phone.trim(),
-        shipping_address: safeCustomer.address.trim(),
+        shipping_address: `${safeCustomer.address.trim()} · CP ${safeCustomer.postalCode.trim()}`,
         shipping_city: safeCustomer.city.trim(),
         total_amount: totalAmount,
         status: 'pending',
-        items,
+        items: { products: items, shipping: shippingRate },
       })
       .select('id')
       .single();
@@ -78,7 +110,7 @@ export async function POST(request: Request) {
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      items,
+      items: paymentItems,
       external_reference: orderId,
       notification_url: `${baseUrl}/api/webhooks/mercadopago`,
       payer: { name: firstName, surname: lastName.join(' '), email: safeCustomer.email.trim(), phone: { number: safeCustomer.phone.trim() }, identification: { type: safeCustomer.documentType, number: safeCustomer.documentNumber.trim() } },
