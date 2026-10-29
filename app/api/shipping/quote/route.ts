@@ -50,6 +50,8 @@ export async function POST(request: Request) {
   });
 
   try {
+    // getShippingRates reads ENVIA_ORIGIN_STREET, ENVIA_ORIGIN_NUMBER and
+    // ENVIA_ORIGIN_POSTAL_CODE on the server; these never reach the browser.
     const options = await getShippingRates({
       city: input.city,
       postalCode: input.postalCode,

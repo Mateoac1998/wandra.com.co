@@ -52,10 +52,11 @@ export async function POST(request: Request) {
       address: safeCustomer.address,
       items,
     });
-    shippingRate = rates.find((rate) => rate.id === input.shipping?.optionId);
-    if (!shippingRate) {
+    const selectedRate = rates.find((rate) => rate.id === input.shipping?.optionId);
+    if (!selectedRate) {
       return NextResponse.json({ error: 'La tarifa seleccionada ya no está disponible. Vuelve a cotizar el envío.' }, { status: 400 });
     }
+    shippingRate = selectedRate;
   } catch (error) {
     const message = error instanceof ShippingQuoteError
       ? error.message

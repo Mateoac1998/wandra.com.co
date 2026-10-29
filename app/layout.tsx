@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from 'sonner';
 import { site, SITE_URL } from '@/lib/site';
 import { media } from '@/lib/media';
+import { CartButton } from '@/components/cart-button';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -30,5 +31,5 @@ export default function RootLayout({
     address: { '@type': 'PostalAddress', addressLocality: 'Armenia', addressRegion: 'Quindío', addressCountry: 'CO' },
     contactPoint: [{ '@type': 'ContactPoint', telephone: '+57 321 432 0429', email: site.email, contactType: 'sales', availableLanguage: 'es' }],
   };
-  return <html lang="es-CO"><body>{children}<Toaster position="bottom-center" closeButton /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} /></body></html>;
+  return <html lang="es-CO"><body>{children}<div className="floating-cart"><CartButton /></div><a className="whatsapp-float" href={site.whatsapp} target="_blank" rel="noreferrer" aria-label="Escribir a Wandra por WhatsApp"><span aria-hidden="true">💬</span><span>WhatsApp</span></a><Toaster position="bottom-center" closeButton /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} /></body></html>;
 }
