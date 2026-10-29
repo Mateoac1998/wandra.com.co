@@ -18,6 +18,8 @@ export const media = {
   ritualVideo: cloudinaryAsset('v1789127546', 'IMG20250227153443_1.jpg'),
   ritual: cloudinaryAsset('v1788908564', 'MST0009711.jpg'),
   coffee: cloudinaryAsset('v1788908564', 'MST0004711.jpg'),
+  // Fotografía de la botella de café servida; no usar la imagen del SCOBY en catálogo.
+  coffeeServed: `${uploadRoot}/f_auto,q_auto,w_1600,c_limit/Kombucha_cafe_500ml_Servida_en_copa`,
   pack280: cloudinaryAsset('v1788912441', 'SIX_PACK_280.jpg'),
   pack500: cloudinaryAsset('v1788908562', 'MST0998911.jpg'),
   delivery: cloudinaryAsset('v1788908564', 'Caja_sixPack_500ml_sostenida_en_el_aire.jpg'),
