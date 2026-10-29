@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { products } from '../../../lib/catalog';
 import { getSupabaseAdmin } from '../../../lib/supabase/admin';
-import { getShippingRates, ShippingQuoteError } from '../../../lib/envia';
+import { getShippingRates, ShippingQuoteError, type ShippingRate } from '../../../lib/envia';
 
 export const runtime = 'nodejs';
 
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   });
   const safeCustomer = customer as Required<NonNullable<CheckoutInput['customer']>>;
 
-  let shippingRate;
+  let shippingRate: ShippingRate;
   try {
     const rates = await getShippingRates({
       city: safeCustomer.city,
