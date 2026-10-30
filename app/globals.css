@@ -358,7 +358,9 @@ h1,h2{line-height:.86}
 .floating-cart .cart-button{display:inline-flex;align-items:center;gap:9px;min-height:48px;padding:0 15px;border:1px solid rgba(255,255,255,.55);border-radius:999px;background:var(--wine);color:var(--cream);box-shadow:0 12px 28px rgba(49,29,27,.25);font-family:'Oswald',Arial,sans-serif;font-size:.85rem;font-weight:500;letter-spacing:.07em;text-transform:uppercase;transition:transform .2s ease,background-color .2s ease}
 .floating-cart .cart-button:hover{background:var(--wine-dark);transform:translateY(-2px)}
 .floating-cart .cart-button span{display:grid;width:22px;height:22px;place-items:center;border-radius:50%;background:var(--sand);color:var(--black);font-size:.72rem;letter-spacing:0}
-.whatsapp-float{position:fixed;right:24px;bottom:24px;z-index:50;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 17px;border-radius:999px;background:#168a4a;color:#fff;box-shadow:0 12px 28px rgba(22,69,42,.28);font-family:'Oswald',Arial,sans-serif;font-size:.86rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;transition:transform .2s ease,background-color .2s ease}
-.whatsapp-float:hover{background:#0d6c37;transform:translateY(-2px)}
-.whatsapp-float>span:first-child{font-family:Arial,sans-serif;font-size:1.15rem;line-height:1}
-@media(max-width:560px){.floating-cart{right:14px;bottom:78px}.floating-cart .cart-button{width:48px;padding:0;justify-content:center}.floating-cart .cart-button{font-size:0}.floating-cart .cart-button span{font-size:.72rem}.whatsapp-float{right:14px;bottom:16px;min-height:48px;padding:0 15px}.whatsapp-float>span:last-child{font-size:.78rem}}
+
+.whatsapp-float{position:fixed;right:24px;bottom:24px;z-index:50;display:grid;place-items:center;width:56px;height:56px;padding:0;border-radius:50%;background:#25D366;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:transform .2s ease}
+.whatsapp-float:hover{transform:translateY(-2px)}
+.whatsapp-float:focus-visible,.floating-cart .cart-button:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+@media(max-width:560px){.floating-cart{right:24px;bottom:94px}.floating-cart .cart-button{min-height:44px;padding:0 12px;font-size:.78rem}}
+.checkout-two>*{min-width:0}.checkout-form input,.checkout-form select{width:100%;max-width:100%}

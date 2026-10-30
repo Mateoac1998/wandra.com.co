@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 type CheckoutInput = {
   items?: { sku?: string; quantity?: number }[];
-  customer?: { fullName?: string; email?: string; phone?: string; documentType?: string; documentNumber?: string; city?: string; postalCode?: string; address?: string };
+  customer?: { fullName?: string; email?: string; phone?: string; documentType?: string; documentNumber?: string; department?: string; city?: string; address?: string };
   shipping?: { optionId?: string };
 };
 
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   let input: CheckoutInput;
   try { input = await request.json(); } catch { return NextResponse.json({ error: 'Solicitud inválida.' }, { status: 400 }); }
   const customer = input.customer;
-  if (!customer || !required(customer.fullName) || !required(customer.email) || !required(customer.phone) || !required(customer.documentType) || !required(customer.documentNumber) || !required(customer.city) || !required(customer.postalCode) || !required(customer.address)) {
+  if (!customer || !required(customer.fullName) || !required(customer.email) || !required(customer.phone) || !required(customer.documentType) || !required(customer.documentNumber) || !required(customer.city) || !required(customer.department) || !required(customer.address)) {
     return NextResponse.json({ error: 'Completa los datos requeridos para la compra, la factura y el envío.' }, { status: 400 });
   }
   if (!Array.isArray(input.items) || !input.items.length) return NextResponse.json({ error: 'Tu carrito está vacío.' }, { status: 400 });
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   try {
     const rates = await getShippingRates({
       city: safeCustomer.city,
-      postalCode: safeCustomer.postalCode,
+      department: safeCustomer.department,
       address: safeCustomer.address,
       items,
     });
@@ -85,8 +85,8 @@ export async function POST(request: Request) {
         customer_name: safeCustomer.fullName.trim(),
         customer_email: safeCustomer.email.trim(),
         customer_phone: safeCustomer.phone.trim(),
-        shipping_address: `${safeCustomer.address.trim()} · CP ${safeCustomer.postalCode.trim()}`,
-        shipping_city: safeCustomer.city.trim(),
+        shipping_address: safeCustomer.address.trim(),
+        shipping_city: `${safeCustomer.city.trim()}, ${safeCustomer.department.trim()}`,
         total_amount: totalAmount,
         status: 'pending',
         items: { products: items, shipping: shippingRate },
