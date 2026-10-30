@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 
 type QuoteInput = {
   city?: string;
-  postalCode?: string;
+  department?: string;
   address?: string;
   items?: { sku?: string; quantity?: number }[];
 };
@@ -25,8 +25,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Solicitud de envío inválida.' }, { status: 400 });
   }
 
-  if (!input.city?.trim() || !input.postalCode?.trim() || !Array.isArray(input.items) || !input.items.length) {
-    return NextResponse.json({ error: 'Ingresa ciudad, código postal y productos para cotizar.' }, { status: 400 });
+  if (typeof input.city !== 'string' || !input.city.trim() || typeof input.department !== 'string' || !input.department.trim() || !Array.isArray(input.items) || !input.items.length) {
+    return NextResponse.json({ error: 'Ingresa departamento, municipio y productos para cotizar.' }, { status: 400 });
   }
 
   const requested = new Map<string, number>();
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     // ENVIA_ORIGIN_POSTAL_CODE on the server; these never reach the browser.
     const options = await getShippingRates({
       city: input.city,
-      postalCode: input.postalCode,
+      department: input.department,
       address: input.address,
       items,
     });
