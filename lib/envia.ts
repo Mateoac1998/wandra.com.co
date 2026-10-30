@@ -14,6 +14,16 @@ export type ShippingRate = {
   deliveryDays?: number | null;
 };
 
+// Shared contract for checkout and shipping quote routes. Postal code is resolved
+// server-side and is not required from the buyer.
+export type ShippingQuoteInput = {
+  city: string;
+  department: string;
+  stateCode?: string;
+  address?: string;
+  items: QuoteItem[];
+};
+
 type EnviaRecord = Record<string, unknown>;
 
 export class ShippingQuoteError extends Error {}
@@ -120,14 +130,10 @@ function normalizeRate(value: unknown): ShippingRate | null {
 export async function getShippingRates({
   city,
   department,
+  stateCode,
   address,
   items,
-}: {
-  city: string;
-  department: string;
-  address?: string;
-  items: QuoteItem[];
-}) {
+}: ShippingQuoteInput): Promise<ShippingRate[]> {
   const token = process.env.ENVIA_API_TOKEN;
   if (!token) throw new ShippingQuoteError('La cotización de envíos aún no está configurada.');
 
@@ -135,6 +141,9 @@ export async function getShippingRates({
     throw new ShippingQuoteError('Ingresa departamento, municipio y al menos un producto.');
   }
   const destinationLocation = await resolveDestination(department, city);
+  if (stateCode !== undefined && stateCode !== destinationLocation.stateCode) {
+    throw new ShippingQuoteError('El código de departamento no coincide con el municipio seleccionado.');
+  }
 
   const declaredValue = items.reduce((total, item) => total + (item.unit_price * item.quantity), 0);
   const quantity = items.reduce((total, item) => total + item.quantity, 0);

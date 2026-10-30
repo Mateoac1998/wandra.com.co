@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { products } from '../../../../lib/catalog';
-import { getShippingRates, ShippingQuoteError } from '../../../../lib/envia';
+import { getShippingRates, ShippingQuoteError, type ShippingQuoteInput } from '../../../../lib/envia';
 
 export const runtime = 'nodejs';
 
@@ -52,12 +52,13 @@ export async function POST(request: Request) {
   try {
     // getShippingRates reads ENVIA_ORIGIN_STREET, ENVIA_ORIGIN_NUMBER and
     // ENVIA_ORIGIN_POSTAL_CODE on the server; these never reach the browser.
-    const options = await getShippingRates({
+    const shippingInput: ShippingQuoteInput = {
       city: input.city,
       department: input.department,
       address: input.address,
       items,
-    });
+    };
+    const options = await getShippingRates(shippingInput);
 
     return NextResponse.json({ options });
   } catch (error) {

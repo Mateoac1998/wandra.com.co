@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { products } from '../../../lib/catalog';
 import { getSupabaseAdmin } from '../../../lib/supabase/admin';
-import { getShippingRates, ShippingQuoteError, type ShippingRate } from '../../../lib/envia';
+import { getShippingRates, ShippingQuoteError, type ShippingRate, type ShippingQuoteInput } from '../../../lib/envia';
 
 export const runtime = 'nodejs';
 
@@ -46,12 +46,13 @@ export async function POST(request: Request) {
 
   let shippingRate: ShippingRate;
   try {
-    const rates = await getShippingRates({
+    const shippingInput: ShippingQuoteInput = {
       city: safeCustomer.city,
       department: safeCustomer.department,
       address: safeCustomer.address,
       items,
-    });
+    };
+    const rates = await getShippingRates(shippingInput);
     const selectedRate = rates.find((rate) => rate.id === input.shipping?.optionId);
     if (!selectedRate) {
       return NextResponse.json({ error: 'La tarifa seleccionada ya no está disponible. Vuelve a cotizar el envío.' }, { status: 400 });
