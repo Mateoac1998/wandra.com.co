@@ -16,7 +16,7 @@ function loadShipping(fetch) {
 
 const input = {
   department: 'Quindío', city: 'Armenia', address: 'Carrera 10 # 20-30',
-  items: [{ id: 'KC050', title: 'Kombucha Café · 500 ml', quantity: 2, unit_price: 12000 }],
+  items: [{ id: 'KC050', title: 'Kombucha Café · 500 ml', quantity: 2, unit_price: 12000, logistics: { weight: 0.82, length: 6, width: 6, height: 24.4 } }],
 };
 const states = { data: [{ name: 'Quindio', code_2_digits: 'QU' }] };
 const location = { city: '63001000', name: 'ARMENIA', state: 'QU' };
@@ -40,7 +40,13 @@ test('quotes without a buyer postal code and maps names to validated Envia codes
   assert.equal(calls[2].body.destination.city, '63001000');
   assert.equal(calls[2].body.destination.state, 'QU');
   assert.equal(calls[2].body.destination.postalCode, '');
-  assert.equal(calls[2].body.packages[0].declaredValue, 24000);
+  assert.equal(calls[2].body.packages.length, 2);
+  assert.deepEqual(calls[2].body.packages[0], {
+    type: 'box', content: 'Alimentos', amount: 1, declaredValue: 12000,
+    weight: 0.82, dimensions: { length: 6, width: 6, height: 24.4 },
+    weightUnit: 'KG', lengthUnit: 'CM',
+  });
+  assert.equal(calls[2].body.packages.reduce((sum, item) => sum + item.declaredValue, 0), 24000);
 });
 
 test('rejects a municipality returned in a different department before requesting rates', async () => {
@@ -73,4 +79,22 @@ test('logs Envia semantic errors even when HTTP status is 200', async () => {
   } finally {
     console.error = original;
   }
+});
+
+test('mixed carts create one package per unit, including one box per six-pack', () => {
+  const { buildShippingPackages } = loadShipping(() => { throw new Error('Network not expected'); });
+  const items = [...input.items, { id: 'KSX280', title: 'Six pack', quantity: 2, unit_price: 42000,
+    logistics: { weight: 2.71, length: 16.5, width: 11, height: 16.4 } }];
+  const packages = buildShippingPackages(items);
+  assert.equal(packages.length, 4);
+  assert.equal(packages[2].weight, 2.71);
+  assert.deepEqual(packages[2].dimensions, { length: 16.5, width: 11, height: 16.4 });
+  assert.ok(packages.every((item) => item.amount === 1 && item.weightUnit === 'KG' && item.lengthUnit === 'CM' && item.content === 'Alimentos'));
+  assert.equal(packages.reduce((sum, item) => sum + item.declaredValue, 0), 108000);
+});
+
+test('invalid or missing shipping dimensions are rejected', () => {
+  const { buildShippingPackages } = loadShipping(() => { throw new Error('Network not expected'); });
+  assert.throws(() => buildShippingPackages([{ ...input.items[0], logistics: { ...input.items[0].logistics, height: 0 } }]), /medidas de envío válidas/);
+  assert.throws(() => buildShippingPackages([{ ...input.items[0], quantity: 1.5 }]), /medidas de envío válidas/);
 });
