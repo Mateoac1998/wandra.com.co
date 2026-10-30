@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { cartTotal, changeCartQuantity, useCart } from '@/lib/cart';
 
+const departments = ["Amazonas","Antioquia","Arauca","Atlántico","Bogotá","Bolívar","Boyacá","Caldas","Caquetá","Casanare","Cauca","Cesar","Chocó","Córdoba","Cundinamarca","Guainía","Guaviare","Huila","La Guajira","Magdalena","Meta","Nariño","Norte de Santander","Putumayo","Quindío","Risaralda","San Andrés y Providencia","Santander","Sucre","Tolima","Valle del Cauca","Vaupés","Vichada"];
+
 const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
 type ShippingOption = {
@@ -25,7 +27,7 @@ export default function CheckoutPage() {
   const [shippingError, setShippingError] = useState('');
   const [selectedShippingId, setSelectedShippingId] = useState('');
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ fullName: '', email: '', phone: '', documentType: 'CC', documentNumber: '', city: '', postalCode: '', address: '' });
+  const [form, setForm] = useState({ fullName: '', email: '', phone: '', documentType: 'CC', documentNumber: '', department: '', city: '', address: '' });
 
   const selectedShipping = shippingOptions.find((option) => option.id === selectedShippingId);
   const total = productsTotal + (selectedShipping?.price || 0);
@@ -33,8 +35,8 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     const city = form.city.trim();
-    const postalCode = form.postalCode.replace(/\D/g, '');
-    if (city.length < 2 || postalCode.length !== 6 || !quoteItems.length) {
+    const department = form.department.trim();
+    if (city.length < 2 || !department || !quoteItems.length) {
       setShippingOptions([]);
       setSelectedShippingId('');
       setShippingError('');
@@ -42,6 +44,9 @@ export default function CheckoutPage() {
       return;
     }
 
+    setShippingOptions([]);
+    setSelectedShippingId('');
+    setQuoteLoading(true);
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       setQuoteLoading(true);
@@ -52,7 +57,7 @@ export default function CheckoutPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
-          body: JSON.stringify({ city, postalCode, items: quoteItems }),
+          body: JSON.stringify({ department, city, address: form.address, items: quoteItems }),
         });
         const data = await response.json().catch(() => ({})) as { options?: ShippingOption[]; error?: string };
         if (!response.ok || !data.options?.length) throw new Error(data.error || 'No hay tarifas disponibles para este destino.');
@@ -73,13 +78,13 @@ export default function CheckoutPage() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [form.city, form.postalCode, quoteItems, quoteItemsKey]);
+  }, [form.department, form.city, form.address, quoteItems, quoteItemsKey]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!lines.length) return;
     if (!selectedShipping) {
-      setError('Ingresa ciudad y código postal, y selecciona una tarifa de envío antes de continuar.');
+      setError('Ingresa departamento y municipio, y selecciona una tarifa de envío antes de continuar.');
       return;
     }
 
@@ -108,7 +113,7 @@ export default function CheckoutPage() {
   return <main className="checkout-page">
     <header className="checkout-top"><a href="/" className="brand-logo" aria-label="Volver a Wandra"><img src="/assets/wandra-logo-web.png" alt="Wandra" /></a><a href="/productos">← Seguir comprando</a></header>
     <div className="checkout-layout"><section className="checkout-form"><p className="eyebrow">Compra segura</p><h1>FINALIZA TU<br /><i>RITUAL</i></h1><p className="checkout-intro">Cotizamos tu envío en tiempo real antes de abrir Mercado Pago.</p>
-      {!lines.length ? <div className="checkout-empty"><p>Tu bolsa está vacía.</p><a className="button button-dark" href="/productos">Ver productos</a></div> : <form onSubmit={submit}><fieldset><legend>Datos para compra, factura y envío</legend><label>Nombre completo<input required value={form.fullName} onChange={(event) => setField('fullName', event.target.value)} /></label><div className="checkout-two"><label>Correo electrónico<input type="email" required value={form.email} onChange={(event) => setField('email', event.target.value)} /></label><label>Celular<input inputMode="tel" required value={form.phone} onChange={(event) => setField('phone', event.target.value)} /></label></div><div className="checkout-two"><label>Tipo de documento<select value={form.documentType} onChange={(event) => setField('documentType', event.target.value)}><option value="CC">Cédula de ciudadanía</option><option value="CE">Cédula de extranjería</option><option value="NIT">NIT</option><option value="TI">Tarjeta de identidad</option></select></label><label>Número de documento<input required value={form.documentNumber} onChange={(event) => setField('documentNumber', event.target.value)} /></label></div><div className="checkout-two"><label>Ciudad o municipio<input required value={form.city} onChange={(event) => setField('city', event.target.value)} /></label><label>Código postal<input required inputMode="numeric" maxLength={6} value={form.postalCode} onChange={(event) => setField('postalCode', event.target.value.replace(/\D/g, ''))} /></label></div><label>Dirección de entrega<input required value={form.address} onChange={(event) => setField('address', event.target.value)} /></label></fieldset>
+      {!lines.length ? <div className="checkout-empty"><p>Tu bolsa está vacía.</p><a className="button button-dark" href="/productos">Ver productos</a></div> : <form onSubmit={submit}><fieldset><legend>Datos para compra, factura y envío</legend><label>Nombre completo<input required value={form.fullName} onChange={(event) => setField('fullName', event.target.value)} /></label><div className="checkout-two"><label>Correo electrónico<input type="email" required value={form.email} onChange={(event) => setField('email', event.target.value)} /></label><label>Celular<input inputMode="tel" required value={form.phone} onChange={(event) => setField('phone', event.target.value)} /></label></div><div className="checkout-two"><label>Tipo de documento<select value={form.documentType} onChange={(event) => setField('documentType', event.target.value)}><option value="CC">Cédula de ciudadanía</option><option value="CE">Cédula de extranjería</option><option value="NIT">NIT</option><option value="TI">Tarjeta de identidad</option></select></label><label>Número de documento<input required value={form.documentNumber} onChange={(event) => setField('documentNumber', event.target.value)} /></label></div><div className="checkout-two"><label>Departamento<select required autoComplete="address-level1" value={form.department} onChange={(event) => setForm((current) => ({ ...current, department: event.target.value, city: '' }))}><option value="">Selecciona tu departamento</option>{departments.map((department) => <option key={department} value={department}>{department}</option>)}</select></label><label>Municipio / Ciudad<input required autoComplete="address-level2" placeholder="Ej. Armenia" disabled={!form.department} value={form.city} onChange={(event) => setField('city', event.target.value)} /></label></div><label>Dirección de entrega<input required value={form.address} onChange={(event) => setField('address', event.target.value)} /></label></fieldset>
         <section className="checkout-shipping" aria-live="polite"><p className="eyebrow">Envío</p>{quoteLoading && <p>Cotizando opciones de envío…</p>}{shippingError && <p className="checkout-error" role="alert">{shippingError}</p>}{shippingOptions.length > 0 && <label>Elige tu envío<select value={selectedShippingId} onChange={(event) => setSelectedShippingId(event.target.value)}>{shippingOptions.map((option) => <option key={option.id} value={option.id}>{option.carrier} · {option.service} — {money.format(option.price)}{option.deliveryDays ? ` · ${option.deliveryDays} días` : ''}</option>)}</select></label>}</section>
         {error && <p className="checkout-error" role="alert">{error}</p>}<button className="button button-dark checkout-pay" disabled={loading || quoteLoading || !selectedShipping} type="submit">{loading ? 'Abriendo pago…' : quoteLoading ? 'Cotizando envío…' : !selectedShipping ? 'Cotiza tu envío para continuar' : `Pagar ${money.format(total)} con Mercado Pago`}</button></form>}</section>
       <aside className="checkout-summary"><p className="eyebrow">Tu bolsa</p>{lines.map((line) => <article key={line.sku}><img src={line.image} alt="" /><div><strong>{line.name}</strong><span>{line.variant}</span><small>{money.format(line.price)} c/u</small><div className="quantity-control"><button type="button" onClick={() => changeCartQuantity(line.sku, line.quantity - 1)} aria-label={`Quitar una unidad de ${line.name}`}>−</button><b>{line.quantity}</b><button type="button" onClick={() => changeCartQuantity(line.sku, line.quantity + 1)} aria-label={`Añadir una unidad de ${line.name}`}>+</button></div></div><b>{money.format(line.price * line.quantity)}</b></article>)}<div className="checkout-total"><span>Productos</span><strong>{money.format(productsTotal)}</strong><span>Envío</span><strong>{quoteLoading ? 'Cotizando…' : selectedShipping ? money.format(selectedShipping.price) : 'Pendiente'}</strong><span>Total</span><strong>{money.format(total)}</strong>{selectedShipping?.deliveryDays && <small>Entrega estimada: {selectedShipping.deliveryDays} días hábiles.</small>}</div></aside></div>
