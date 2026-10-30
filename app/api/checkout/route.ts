@@ -50,7 +50,10 @@ export async function POST(request: Request) {
       city: safeCustomer.city,
       department: safeCustomer.department,
       address: safeCustomer.address,
-      items,
+      items: items.map((item) => ({
+        ...item,
+        logistics: variantIndex.get(item.id)!.variant.logistics,
+      })),
     };
     const rates = await getShippingRates(shippingInput);
     const selectedRate = rates.find((rate) => rate.id === input.shipping?.optionId);
