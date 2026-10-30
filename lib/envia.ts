@@ -1,8 +1,11 @@
+import type { Logistics } from './catalog';
+
 export type QuoteItem = {
   id: string;
   title: string;
   quantity: number;
   unit_price: number;
+  logistics: Logistics;
 };
 
 export type ShippingRate = {
@@ -95,16 +98,24 @@ async function resolveDestination(department: string, cityName: string) {
   };
 }
 
-function packageWeightKg(items: QuoteItem[]) {
-  const milliliters = items.reduce((total, item) => {
-    const sixPack = item.title.match(/(\d+)\s*botellas[^\d]*(\d+)\s*ml/i);
-    const standard = item.title.match(/(\d+)\s*ml/i);
-    const volume = sixPack ? Number(sixPack[1]) * Number(sixPack[2]) : (standard ? Number(standard[1]) : 500);
-    return total + (volume * item.quantity);
-  }, 0);
-
-  // Product + glass/container + one carton. Replace with measured profiles when available.
-  return Math.max(0.5, Number((milliliters / 1000 + items.reduce((total, item) => total + item.quantity, 0) * 0.12 + 0.35).toFixed(2)));
+export function buildShippingPackages(items: QuoteItem[]) {
+  return items.flatMap((item) => {
+    const { weight, length, width, height } = item.logistics;
+    if (!Number.isInteger(item.quantity) || item.quantity < 1 ||
+        ![weight, length, width, height].every((value) => Number.isFinite(value) && value > 0)) {
+      throw new ShippingQuoteError('Hay un producto sin medidas de envío válidas.');
+    }
+    return Array.from({ length: item.quantity }, () => ({
+      type: 'box',
+      content: 'Alimentos',
+      amount: 1,
+      declaredValue: item.unit_price,
+      weight,
+      dimensions: { length, width, height },
+      weightUnit: 'KG',
+      lengthUnit: 'CM',
+    }));
+  });
 }
 
 function normalizeRate(value: unknown): ShippingRate | null {
@@ -140,14 +151,12 @@ export async function getShippingRates({
   if (typeof city !== 'string' || city.trim().length < 2 || typeof department !== 'string' || !department.trim() || !items.length) {
     throw new ShippingQuoteError('Ingresa departamento, municipio y al menos un producto.');
   }
+  const packages = buildShippingPackages(items);
   const destinationLocation = await resolveDestination(department, city);
   if (stateCode !== undefined && stateCode !== destinationLocation.stateCode) {
     throw new ShippingQuoteError('El código de departamento no coincide con el municipio seleccionado.');
   }
 
-  const declaredValue = items.reduce((total, item) => total + (item.unit_price * item.quantity), 0);
-  const quantity = items.reduce((total, item) => total + item.quantity, 0);
-  const weight = packageWeightKg(items);
   const originPostalCode = process.env.ENVIA_ORIGIN_POSTAL_CODE || '630001';
   const originStreet = process.env.ENVIA_ORIGIN_STREET?.trim();
   const originNumber = process.env.ENVIA_ORIGIN_NUMBER?.trim();
@@ -189,16 +198,7 @@ export async function getShippingRates({
         country: destinationLocation.countryCode,
         postalCode: destinationLocation.postalCode,
       },
-      packages: [{
-        type: 'box',
-        content: 'Productos Wandra',
-        amount: quantity,
-        declaredValue,
-        lengthUnit: 'CM',
-        weightUnit: 'KG',
-        weight,
-        dimensions: { length: 35, width: 25, height: Math.min(60, 12 + Math.ceil(quantity / 3) * 8) },
-      }],
+      packages,
       shipment: { type: 1 },
       settings: { currency: 'COP' },
     }),
