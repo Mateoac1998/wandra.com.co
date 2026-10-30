@@ -46,6 +46,7 @@ export async function POST(request: Request) {
       title: `${entry.product.name} · ${entry.variant.label}`,
       quantity,
       unit_price: entry.variant.price,
+      logistics: entry.variant.logistics,
     };
   });
 
