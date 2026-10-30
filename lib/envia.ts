@@ -19,7 +19,8 @@ type EnviaRecord = Record<string, unknown>;
 export class ShippingQuoteError extends Error {}
 
 const ENVIA_RATE_URL = 'https://api.envia.com/ship/rate/';
-const ENVIA_GEOCODES_URL = 'https://geocodes.envia.com/zipcode/CO/';
+const ENVIA_LOCATE_URL = 'https://api.envia.com/locate';
+const ENVIA_STATES_URL = 'https://queries.envia.com/state?country_code=CO';
 
 function asRecord(value: unknown): EnviaRecord | null {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as EnviaRecord : null;
@@ -38,26 +39,50 @@ function text(record: EnviaRecord, keys: string[]) {
   return '';
 }
 
-function getDaneLocation(payload: unknown) {
-  const root = asRecord(payload);
-  if (!root) return null;
+function normalized(value: string) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
 
-  const candidates = [
-    root,
-    ...asArray(root.data),
-    ...asArray(root.zip_codes),
-  ].flatMap((candidate) => {
-    const record = asRecord(candidate);
-    return record ? [record, asRecord(record.info)].filter(Boolean) as EnviaRecord[] : [];
-  });
-
-  for (const candidate of candidates) {
-    const city = text(candidate, ['stat_8digit', 'city_dane', 'dane_code', 'cityCode', 'city_code']);
-    const state = text(candidate, ['state_code', 'stateCode', 'state']);
-    if (/^\d{8}$/.test(city) && state) return { city, state };
+async function resolveDestination(department: string, cityName: string) {
+  const statesResponse = await fetch(ENVIA_STATES_URL, { next: { revalidate: 86400 } });
+  const statesPayload: unknown = await statesResponse.json().catch(() => null);
+  if (!statesResponse.ok) {
+    console.error('Envia API Error:', statesPayload);
+    throw new ShippingQuoteError('No fue posible consultar los departamentos. Intenta nuevamente.');
   }
+  const stateRecord = asArray(asRecord(statesPayload)?.data).map(asRecord).find((state) =>
+    state && normalized(text(state, ['name'])) === normalized(department));
+  const state = stateRecord ? text(stateRecord, ['code_2_digits']) : '';
+  if (!state) throw new ShippingQuoteError('Selecciona un departamento válido de Colombia.');
 
-  return null;
+  const response = await fetch(ENVIA_LOCATE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ country: 'CO', state, city: cityName.trim() }),
+    cache: 'no-store',
+  });
+  const payload: unknown = await response.json().catch(() => null);
+  const root = asRecord(payload);
+  if (!response.ok || root?.meta === 'error') {
+    console.error('Envia API Error:', payload);
+    throw new ShippingQuoteError('No pudimos validar ese municipio en el departamento seleccionado. Revisa su nombre completo.');
+  }
+  const candidates = [root, asRecord(root?.data), ...asArray(root?.data).map(asRecord)].filter((item): item is EnviaRecord => Boolean(item));
+  const location = candidates.find((item) =>
+    /^\d{8}$/.test(text(item, ['city', 'stat_8digit'])) &&
+    text(item, ['state']) === state &&
+    normalized(text(item, ['name'])) === normalized(cityName));
+  if (!location) throw new ShippingQuoteError('Escribe el nombre completo del municipio y verifica su departamento.');
+
+  return {
+    countryCode: 'CO',
+    department: department.trim(),
+    stateCode: state,
+    city: text(location, ['name']),
+    daneCode: text(location, ['city', 'stat_8digit']),
+    // /locate may omit postalCode for Colombia; never invent one.
+    postalCode: text(location, ['postalCode', 'postal_code', 'zipcode']),
+  };
 }
 
 function packageWeightKg(items: QuoteItem[]) {
@@ -94,35 +119,36 @@ function normalizeRate(value: unknown): ShippingRate | null {
 
 export async function getShippingRates({
   city,
-  postalCode,
+  department,
   address,
   items,
 }: {
   city: string;
-  postalCode: string;
+  department: string;
   address?: string;
   items: QuoteItem[];
 }) {
   const token = process.env.ENVIA_API_TOKEN;
   if (!token) throw new ShippingQuoteError('La cotización de envíos aún no está configurada.');
 
-  const cleanPostalCode = postalCode.replace(/\D/g, '');
-  if (!/^\d{6}$/.test(cleanPostalCode) || city.trim().length < 2 || !items.length) {
-    throw new ShippingQuoteError('Ingresa una ciudad, código postal colombiano válido y al menos un producto.');
+  if (typeof city !== 'string' || city.trim().length < 2 || typeof department !== 'string' || !department.trim() || !items.length) {
+    throw new ShippingQuoteError('Ingresa departamento, municipio y al menos un producto.');
   }
-
-  const locationResponse = await fetch(`${ENVIA_GEOCODES_URL}${cleanPostalCode}`, { cache: 'no-store' });
-  const locationPayload = await locationResponse.json().catch(() => null);
-  const destinationLocation = locationResponse.ok ? getDaneLocation(locationPayload) : null;
-  if (!destinationLocation) {
-    throw new ShippingQuoteError('No fue posible validar ese código postal en Envia. Revisa la ciudad y el código postal.');
-  }
+  const destinationLocation = await resolveDestination(department, city);
 
   const declaredValue = items.reduce((total, item) => total + (item.unit_price * item.quantity), 0);
   const quantity = items.reduce((total, item) => total + item.quantity, 0);
   const weight = packageWeightKg(items);
   const originPostalCode = process.env.ENVIA_ORIGIN_POSTAL_CODE || '630001';
-  const originStreet = process.env.ENVIA_ORIGIN_STREET || 'Armenia, Quindío';
+  const originStreet = process.env.ENVIA_ORIGIN_STREET?.trim();
+  const originNumber = process.env.ENVIA_ORIGIN_NUMBER?.trim();
+  if (!originStreet || !originNumber || !/^\d{6}$/.test(originPostalCode)) {
+    throw new ShippingQuoteError('La dirección de despacho aún no está configurada correctamente.');
+  }
+  const origin = {
+    countryCode: 'CO', stateCode: 'QU', department: 'Quindío', city: 'Armenia',
+    postalCode: originPostalCode, street: originStreet, number: originNumber,
+  };
 
   const rateResponse = await fetch(ENVIA_RATE_URL, {
     method: 'POST',
@@ -135,13 +161,13 @@ export async function getShippingRates({
       origin: {
         name: 'Wandra',
         phone: '+573214320429',
-        street: originStreet,
-        number: process.env.ENVIA_ORIGIN_NUMBER || 'S/N',
+        street: origin.street,
+        number: origin.number,
         district: 'Centro',
         city: '63001000',
-        state: 'QD',
-        country: 'CO',
-        postalCode: originPostalCode,
+        state: origin.stateCode,
+        country: origin.countryCode,
+        postalCode: origin.postalCode,
       },
       destination: {
         name: 'Cliente Wandra',
@@ -149,10 +175,10 @@ export async function getShippingRates({
         street: address?.trim() || 'Dirección por confirmar',
         number: 'S/N',
         district: 'Por confirmar',
-        city: destinationLocation.city,
-        state: destinationLocation.state,
-        country: 'CO',
-        postalCode: cleanPostalCode,
+        city: destinationLocation.daneCode,
+        state: destinationLocation.stateCode,
+        country: destinationLocation.countryCode,
+        postalCode: destinationLocation.postalCode,
       },
       packages: [{
         type: 'box',
@@ -171,8 +197,8 @@ export async function getShippingRates({
   });
 
   const ratePayload = await rateResponse.json().catch(() => null);
-  if (!rateResponse.ok) {
-    console.error('Envia rate error', rateResponse.status, ratePayload);
+  if (!rateResponse.ok || asRecord(ratePayload)?.meta === 'error') {
+    console.error('Envia API Error:', ratePayload);
     throw new ShippingQuoteError('Envia no pudo cotizar este destino en este momento.');
   }
 
