@@ -98,3 +98,33 @@ test('invalid or missing shipping dimensions are rejected', () => {
   assert.throws(() => buildShippingPackages([{ ...input.items[0], logistics: { ...input.items[0].logistics, height: 0 } }]), /medidas de envío válidas/);
   assert.throws(() => buildShippingPackages([{ ...input.items[0], quantity: 1.5 }]), /medidas de envío válidas/);
 });
+
+test('location names are accent-free Title Case before requesting Envia', async () => {
+  const calls = [];
+  const { getShippingRates, normalizeLocationName } = loadShipping(async (url, options) => {
+    calls.push({ url, body: options?.body ? JSON.parse(options.body) : null });
+    return response(url.includes('/state?') ? states : url.endsWith('/locate') ? location : { data: [{ carrier: 'test', service: 'standard', totalPrice: 9000 }] });
+  });
+  assert.equal(normalizeLocationName('  QUINDÍO  '), 'Quindio');
+  assert.equal(normalizeLocationName('  SAN   JOSÉ '), 'San Jose');
+  await getShippingRates({ ...input, department: '  QUINDÍO ', city: ' ARMÉNIA ' });
+  assert.deepEqual(calls[1].body, { country: 'CO', state: 'QU', city: 'Armenia' });
+  assert.equal(calls[2].body.destination.city, '63001000');
+});
+
+test('shipping accepts stateCode without department while validating it', async () => {
+  const { getShippingRates } = loadShipping(async (url) =>
+    response(url.includes('/state?') ? states : url.endsWith('/locate') ? location : { data: [{ carrier: 'test', service: 'standard', totalPrice: 9000 }] }));
+  const rates = await getShippingRates({ ...input, department: undefined, stateCode: ' qu ' });
+  assert.equal(rates[0].price, 9000);
+  await assert.rejects(getShippingRates({ ...input, stateCode: 'AN' }), /no coincide/);
+});
+
+test('Bogota D.C. from the department selector matches Envia Bogota', async () => {
+  const { getShippingRates } = loadShipping(async (url) => response(
+    url.includes('/state?') ? { data: [{ name: 'Bogotá', code_2_digits: 'DC' }] } :
+    url.endsWith('/locate') ? { city: '11001000', name: 'BOGOTA', state: 'DC' } :
+    { data: [{ carrier: 'test', service: 'standard', totalPrice: 9000 }] }));
+  const rates = await getShippingRates({ ...input, department: 'Bogotá', city: 'BOGOTÁ, D.C.' });
+  assert.equal(rates[0].price, 9000);
+});
