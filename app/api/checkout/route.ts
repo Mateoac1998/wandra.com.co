@@ -3,11 +3,13 @@ import { products } from '../../../lib/catalog';
 import { getSupabaseAdmin } from '../../../lib/supabase/admin';
 import { getShippingRates, ShippingQuoteError, type ShippingRate, type ShippingQuoteInput } from '../../../lib/envia';
 
+import { inferShippingLogistics } from '../../../lib/shipping-logistics';
+
 export const runtime = 'nodejs';
 
 type CheckoutInput = {
   items?: { sku?: string; quantity?: number }[];
-  customer?: { fullName?: string; email?: string; phone?: string; documentType?: string; documentNumber?: string; department?: string; city?: string; address?: string };
+  customer?: { fullName?: string; email?: string; phone?: string; documentType?: string; documentNumber?: string; department?: string; stateCode?: string; city?: string; address?: string };
   shipping?: { optionId?: string };
 };
 
@@ -22,7 +24,7 @@ export async function POST(request: Request) {
   let input: CheckoutInput;
   try { input = await request.json(); } catch { return NextResponse.json({ error: 'Solicitud inválida.' }, { status: 400 }); }
   const customer = input.customer;
-  if (!customer || !required(customer.fullName) || !required(customer.email) || !required(customer.phone) || !required(customer.documentType) || !required(customer.documentNumber) || !required(customer.city) || !required(customer.department) || !required(customer.address)) {
+  if (!customer || !required(customer.fullName) || !required(customer.email) || !required(customer.phone) || !required(customer.documentType) || !required(customer.documentNumber) || !required(customer.city) || (!required(customer.department) && !required(customer.stateCode)) || !required(customer.address)) {
     return NextResponse.json({ error: 'Completa los datos requeridos para la compra, la factura y el envío.' }, { status: 400 });
   }
   if (!Array.isArray(input.items) || !input.items.length) return NextResponse.json({ error: 'Tu carrito está vacío.' }, { status: 400 });
@@ -49,11 +51,12 @@ export async function POST(request: Request) {
     const shippingInput: ShippingQuoteInput = {
       city: safeCustomer.city,
       department: safeCustomer.department,
+      stateCode: safeCustomer.stateCode,
       address: safeCustomer.address,
-      items: items.map((item) => ({
-        ...item,
-        logistics: variantIndex.get(item.id)!.variant.logistics,
-      })),
+      items: items.map((item) => {
+        const { product, variant } = variantIndex.get(item.id)!;
+        return { ...item, logistics: inferShippingLogistics(product.name, variant.label) };
+      }),
     };
     const rates = await getShippingRates(shippingInput);
     const selectedRate = rates.find((rate) => rate.id === input.shipping?.optionId);
@@ -90,7 +93,7 @@ export async function POST(request: Request) {
         customer_email: safeCustomer.email.trim(),
         customer_phone: safeCustomer.phone.trim(),
         shipping_address: safeCustomer.address.trim(),
-        shipping_city: `${safeCustomer.city.trim()}, ${safeCustomer.department.trim()}`,
+        shipping_city: `${safeCustomer.city.trim()}, ${(safeCustomer.department?.trim() || safeCustomer.stateCode?.trim())}`,
         total_amount: totalAmount,
         status: 'pending',
         items: { products: items, shipping: shippingRate },
