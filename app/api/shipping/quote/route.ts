@@ -2,11 +2,14 @@ import { NextResponse } from 'next/server';
 import { products } from '../../../../lib/catalog';
 import { getShippingRates, ShippingQuoteError, type ShippingQuoteInput } from '../../../../lib/envia';
 
+import { inferShippingLogistics } from '../../../../lib/shipping-logistics';
+
 export const runtime = 'nodejs';
 
 type QuoteInput = {
   city?: string;
   department?: string;
+  stateCode?: string;
   address?: string;
   items?: { sku?: string; quantity?: number }[];
 };
@@ -25,7 +28,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Solicitud de envío inválida.' }, { status: 400 });
   }
 
-  if (typeof input.city !== 'string' || !input.city.trim() || typeof input.department !== 'string' || !input.department.trim() || !Array.isArray(input.items) || !input.items.length) {
+  const hasDepartment = typeof input.department === 'string' && Boolean(input.department.trim());
+  const hasStateCode = typeof input.stateCode === 'string' && Boolean(input.stateCode.trim());
+  if (typeof input.city !== 'string' || !input.city.trim() || (!hasDepartment && !hasStateCode) || !Array.isArray(input.items) || !input.items.length) {
     return NextResponse.json({ error: 'Ingresa departamento, municipio y productos para cotizar.' }, { status: 400 });
   }
 
@@ -39,23 +44,24 @@ export async function POST(request: Request) {
     requested.set(sku, Math.min((requested.get(sku) || 0) + quantity, 24));
   }
 
-  const items = [...requested.entries()].map(([sku, quantity]) => {
-    const entry = variantIndex.get(sku)!;
-    return {
-      id: sku,
-      title: `${entry.product.name} · ${entry.variant.label}`,
-      quantity,
-      unit_price: entry.variant.price,
-      logistics: entry.variant.logistics,
-    };
-  });
-
   try {
+    const items = [...requested.entries()].map(([sku, quantity]) => {
+      const entry = variantIndex.get(sku)!;
+      return {
+        id: sku,
+        title: `${entry.product.name} · ${entry.variant.label}`,
+        quantity,
+        unit_price: entry.variant.price,
+        logistics: inferShippingLogistics(entry.product.name, entry.variant.label),
+      };
+    });
+
     // getShippingRates reads ENVIA_ORIGIN_STREET, ENVIA_ORIGIN_NUMBER and
     // ENVIA_ORIGIN_POSTAL_CODE on the server; these never reach the browser.
     const shippingInput: ShippingQuoteInput = {
       city: input.city,
       department: input.department,
+      stateCode: input.stateCode,
       address: input.address,
       items,
     };

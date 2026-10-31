@@ -21,7 +21,7 @@ export type ShippingRate = {
 // server-side and is not required from the buyer.
 export type ShippingQuoteInput = {
   city: string;
-  department: string;
+  department?: string;
   stateCode?: string;
   address?: string;
   items: QuoteItem[];
@@ -52,11 +52,18 @@ function text(record: EnviaRecord, keys: string[]) {
   return '';
 }
 
-function normalized(value: string) {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+export function normalizeLocationName(value: string) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .trim().replace(/\s+/g, ' ').toLowerCase()
+    .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
 }
 
-async function resolveDestination(department: string, cityName: string) {
+function normalized(value: string) {
+  return normalizeLocationName(value).toLowerCase().replace(/[^a-z0-9]/g, '')
+    .replace(/^bogotadc$/, 'bogota');
+}
+
+async function resolveDestination(department: string, cityName: string, stateCode?: string) {
   const statesResponse = await fetch(ENVIA_STATES_URL, { next: { revalidate: 86400 } });
   const statesPayload: unknown = await statesResponse.json().catch(() => null);
   if (!statesResponse.ok) {
@@ -64,7 +71,7 @@ async function resolveDestination(department: string, cityName: string) {
     throw new ShippingQuoteError('No fue posible consultar los departamentos. Intenta nuevamente.');
   }
   const stateRecord = asArray(asRecord(statesPayload)?.data).map(asRecord).find((state) =>
-    state && normalized(text(state, ['name'])) === normalized(department));
+    state && (department ? normalized(text(state, ['name'])) === normalized(department) : text(state, ['code_2_digits']) === stateCode));
   const state = stateRecord ? text(stateRecord, ['code_2_digits']) : '';
   if (!state) throw new ShippingQuoteError('Selecciona un departamento válido de Colombia.');
 
@@ -89,9 +96,9 @@ async function resolveDestination(department: string, cityName: string) {
 
   return {
     countryCode: 'CO',
-    department: department.trim(),
+    department: normalizeLocationName(stateRecord ? text(stateRecord, ['name']) : department),
     stateCode: state,
-    city: text(location, ['name']),
+    city: normalizeLocationName(text(location, ['name'])),
     daneCode: text(location, ['city', 'stat_8digit']),
     // /locate may omit postalCode for Colombia; never invent one.
     postalCode: text(location, ['postalCode', 'postal_code', 'zipcode']),
@@ -100,7 +107,7 @@ async function resolveDestination(department: string, cityName: string) {
 
 export function buildShippingPackages(items: QuoteItem[]) {
   return items.flatMap((item) => {
-    const { weight, length, width, height } = item.logistics;
+    const { weight, length, width, height } = item.logistics ?? {};
     if (!Number.isInteger(item.quantity) || item.quantity < 1 ||
         ![weight, length, width, height].every((value) => Number.isFinite(value) && value > 0)) {
       throw new ShippingQuoteError('Hay un producto sin medidas de envío válidas.');
@@ -148,12 +155,15 @@ export async function getShippingRates({
   const token = process.env.ENVIA_API_TOKEN;
   if (!token) throw new ShippingQuoteError('La cotización de envíos aún no está configurada.');
 
-  if (typeof city !== 'string' || city.trim().length < 2 || typeof department !== 'string' || !department.trim() || !items.length) {
+  const cleanCity = typeof city === 'string' ? normalizeLocationName(city) : '';
+  const cleanDepartment = typeof department === 'string' ? normalizeLocationName(department) : '';
+  const cleanStateCode = typeof stateCode === 'string' ? stateCode.trim().toUpperCase() : undefined;
+  if (cleanCity.length < 2 || (!cleanDepartment && !cleanStateCode) || !items.length) {
     throw new ShippingQuoteError('Ingresa departamento, municipio y al menos un producto.');
   }
   const packages = buildShippingPackages(items);
-  const destinationLocation = await resolveDestination(department, city);
-  if (stateCode !== undefined && stateCode !== destinationLocation.stateCode) {
+  const destinationLocation = await resolveDestination(cleanDepartment, cleanCity, cleanStateCode);
+  if (cleanStateCode !== undefined && cleanStateCode !== destinationLocation.stateCode) {
     throw new ShippingQuoteError('El código de departamento no coincide con el municipio seleccionado.');
   }
 
@@ -164,7 +174,7 @@ export async function getShippingRates({
     throw new ShippingQuoteError('La dirección de despacho aún no está configurada correctamente.');
   }
   const origin = {
-    countryCode: 'CO', stateCode: 'QU', department: 'Quindío', city: 'Armenia',
+    countryCode: 'CO', stateCode: 'QU', department: 'Quindio', city: 'Armenia',
     postalCode: originPostalCode, street: originStreet, number: originNumber,
   };
 
