@@ -6,11 +6,12 @@ import { getShippingRates, ShippingQuoteError, type ShippingRate, type ShippingQ
 import { inferShippingLogistics } from '../../../lib/shipping-logistics';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 type CheckoutInput = {
   items?: { sku?: string; quantity?: number }[];
   customer?: { fullName?: string; email?: string; phone?: string; documentType?: string; documentNumber?: string; department?: string; stateCode?: string; city?: string; address?: string };
-  shipping?: { optionId?: string };
+  shipping?: { optionId?: string; price?: number };
 };
 
 const variantIndex = new Map(products.flatMap((product) => product.variants.map((variant) => [variant.sku, { product, variant }] as const)));
@@ -62,6 +63,9 @@ export async function POST(request: Request) {
     const selectedRate = rates.find((rate) => rate.id === input.shipping?.optionId);
     if (!selectedRate) {
       return NextResponse.json({ error: 'La tarifa seleccionada ya no está disponible. Vuelve a cotizar el envío.' }, { status: 400 });
+    }
+    if (typeof input.shipping?.price !== 'number' || !Number.isFinite(input.shipping.price) || input.shipping.price !== selectedRate.price) {
+      return NextResponse.json({ error: 'La tarifa de envío cambió. Vuelve a cotizar y confirma el nuevo total antes de pagar.' }, { status: 409 });
     }
     shippingRate = selectedRate;
   } catch (error) {
