@@ -32,7 +32,7 @@ test('quotes without a buyer postal code and maps names to validated Envia codes
   });
   const rates = await getShippingRates(input);
   assert.equal(rates[0].price, 9000);
-  assert.deepEqual(calls[2].body.shipment, { carrier: 'envia', type: 1 });
+  assert.deepEqual(calls[2].body.shipment, { type: 1 });
   assert.deepEqual(calls[1].body, { country: 'CO', state: 'QU', city: 'Armenia' });
   assert.deepEqual(calls[2].body.origin, {
     name: 'Wandra', phone: '+573214320429', street: 'Calle de prueba', number: '1-2',
@@ -128,4 +128,56 @@ test('Bogota D.C. from the department selector matches Envia Bogota', async () =
     { data: [{ carrier: 'test', service: 'standard', totalPrice: 9000 }] }));
   const rates = await getShippingRates({ ...input, department: 'Bogotá', city: 'BOGOTÁ, D.C.' });
   assert.equal(rates[0].price, 9000);
+});
+
+test('aggregates discovered carriers, preserves valid rates when some lack coverage, and deduplicates', async () => {
+  const requested = [];
+  const { getShippingRates } = loadShipping(async (url, options) => {
+    if (url.includes('/state?')) return response(states);
+    if (url.endsWith('/locate')) return response(location);
+    if (url.includes('/carrier?')) return response({ data: [
+      { name: 'coordinadora', description: 'Coordinadora', active: true },
+      { name: 'interrapidisimo', description: 'Interrapidísimo', active: 1 },
+      { name: 'tcc', description: 'TCC', active: true },
+      { name: 'inactive', active: false },
+    ] });
+    const body = JSON.parse(options.body);
+    const carrier = body.shipment.carrier;
+    requested.push(carrier);
+    if (!carrier) return response({ meta: 'error', error: { message: 'Required property missing: carrier' } });
+    if (carrier === 'tcc') return response({ meta: 'error', error: { message: 'No coverage' } });
+    return response({ data: [
+      { carrier, service: 'standard', totalPrice: carrier === 'coordinadora' ? 10000 : 9000, currency: 'COP', deliveryDays: 2 },
+      { carrier, service: 'standard', totalPrice: 12000, currency: 'COP' },
+      { carrier, service: 'international', totalPrice: 1, currency: 'USD' },
+    ] });
+  });
+  const original = console.error;
+  console.error = () => {};
+  try {
+    const rates = await getShippingRates(input);
+    assert.equal(rates.length, 2);
+    assert.deepEqual(rates.map(({ carrier }) => carrier), ['interrapidisimo', 'coordinadora']);
+    assert.deepEqual(rates.map(({ price }) => price), [9000, 10000]);
+    assert.equal(rates[0].carrierName, 'Interrapidísimo');
+    assert.equal(rates[0].deliveryDays, 2);
+    assert.equal(requested.includes('inactive'), false);
+    assert.equal(requested.includes('envia'), false);
+  } finally { console.error = original; }
+});
+
+test('does not query carrier catalog after an authentication failure', async () => {
+  let queries = 0;
+  const { getShippingRates } = loadShipping(async (url) => {
+    if (url.includes('/state?')) return response(states);
+    if (url.endsWith('/locate')) return response(location);
+    if (url.includes('/carrier?')) queries++;
+    return response({ error: { message: 'Invalid token' } }, 401);
+  });
+  const original = console.error;
+  console.error = () => {};
+  try {
+    await assert.rejects(getShippingRates(input), (error) => error.upstreamStatus === 401);
+    assert.equal(queries, 0);
+  } finally { console.error = original; }
 });

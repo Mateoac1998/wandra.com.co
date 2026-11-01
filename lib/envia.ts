@@ -12,6 +12,8 @@ export type ShippingRate = {
   id: string;
   carrier: string;
   service: string;
+  carrierName?: string;
+  deliveryEstimate?: string;
   price: number;
   currency: string;
   deliveryDays?: number | null;
@@ -41,6 +43,7 @@ export class EnviaApiError extends ShippingQuoteError {
 
 const ENVIA_RATE_URL = 'https://api.envia.com/ship/rate/';
 const ENVIA_LOCATE_URL = 'https://api.envia.com/locate';
+const ENVIA_CARRIERS_URL = 'https://queries.envia.com/carrier?country_code=CO';
 const ENVIA_STATES_URL = 'https://queries.envia.com/state?country_code=CO';
 
 function asRecord(value: unknown): EnviaRecord | null {
@@ -133,13 +136,15 @@ export function buildShippingPackages(items: QuoteItem[]) {
   });
 }
 
-function normalizeRate(value: unknown): ShippingRate | null {
+function normalizeRate(value: unknown, requestedCarrier = '', carrierName = ''): ShippingRate | null {
   const record = asRecord(value);
   if (!record) return null;
 
-  const carrier = text(record, ['carrier', 'carrierName', 'provider']);
+  const carrier = text(record, ['carrier', 'provider', 'carrierName']) || requestedCarrier;
   const service = text(record, ['service', 'serviceName', 'service_name']);
-  const price = Number(record.totalPrice ?? record.total_price ?? record.price ?? record.amount);
+  const rawPrice = record.totalPrice ?? record.total_price ?? record.price ?? record.amount;
+  if (rawPrice === null || rawPrice === undefined || rawPrice === '') return null;
+  const price = Number(rawPrice);
   if (!carrier || !service || !Number.isFinite(price) || price < 0) return null;
 
   const days = Number(record.deliveryDays ?? record.delivery_days ?? record.estimatedDeliveryDays);
@@ -147,9 +152,11 @@ function normalizeRate(value: unknown): ShippingRate | null {
     id: `${carrier}::${service}`,
     carrier,
     service,
+    carrierName: carrierName || text(record, ['carrierDescription', 'carrierName']) || carrier,
+    deliveryEstimate: text(record, ['deliveryEstimate', 'delivery_estimate', 'estimatedDelivery']),
     price,
     currency: text(record, ['currency']) || 'COP',
-    deliveryDays: Number.isFinite(days) ? days : null,
+    deliveryDays: Number.isFinite(days) && days > 0 ? days : null,
   };
 }
 
@@ -186,14 +193,7 @@ export async function getShippingRates({
     postalCode: originPostalCode, street: originStreet, number: originNumber,
   };
 
-  const rateResponse = await fetch(ENVIA_RATE_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({
+  const payload = {
       origin: {
         name: 'Wandra',
         phone: '+573214320429',
@@ -217,26 +217,87 @@ export async function getShippingRates({
         postalCode: destinationLocation.postalCode,
       },
       packages,
-      shipment: { carrier: 'envia', type: 1 },
       settings: { currency: 'COP' },
-    }),
-    cache: 'no-store',
-  });
+  };
 
-  const ratePayload = await rateResponse.json().catch(() => null);
-  if (!rateResponse.ok || asRecord(ratePayload)?.meta === 'error') {
-    console.error('Envia API Error:', ratePayload);
-    throw new EnviaApiError('Envia no pudo cotizar este destino en este momento.', ratePayload, rateResponse.status);
+  async function requestRates(carrier?: string, carrierName?: string) {
+    const response = await fetch(ENVIA_RATE_URL, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ ...payload, shipment: carrier ? { carrier, type: 1 } : { type: 1 } }),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(10000),
+    });
+    const body: unknown = await response.json().catch(() => null);
+    const root = asRecord(body);
+    if (!response.ok || root?.meta === 'error') {
+      console.error('Envia API Error:', body);
+      throw new EnviaApiError('Envia no pudo cotizar este destino en este momento.', body, response.status);
+    }
+    return asArray(root?.data ?? root?.rates)
+      .map((rate) => normalizeRate(rate, carrier, carrierName))
+      .filter((rate): rate is ShippingRate => Boolean(rate))
+      .filter((rate) => rate.currency.toUpperCase() === 'COP');
   }
 
-  const root = asRecord(ratePayload);
-  const rates = asArray(root?.data ?? root?.rates)
-    .map(normalizeRate)
-    .filter((rate): rate is ShippingRate => Boolean(rate))
-    .filter((rate) => rate.currency === 'COP')
-    .sort((a, b) => a.price - b.price);
+  let generalError: unknown = null;
+  try {
+    const generalRates = await requestRates();
+    if (generalRates.length) return deduplicateRates(generalRates);
+  } catch (error) {
+    if (!(error instanceof EnviaApiError) || !/carrier/i.test(JSON.stringify(error.enviaError)) ||
+        !/missing|required|obligatori/i.test(JSON.stringify(error.enviaError))) throw error;
+    generalError = error.enviaError;
+  }
 
-  if (!rates.length) throw new ShippingQuoteError('No hay opciones de envío disponibles para este destino.');
+  // Some accounts require a specific carrier. Discover the catalog and aggregate
+  // per-carrier quotes instead of pinning the checkout to a single provider.
+  const carrierResponse = await fetch(ENVIA_CARRIERS_URL, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+    next: { revalidate: 3600 },
+    signal: AbortSignal.timeout(10000),
+  });
+  const carrierPayload: unknown = await carrierResponse.json().catch(() => null);
+  const carrierRoot = asRecord(carrierPayload);
+  if (!carrierResponse.ok || carrierRoot?.meta === 'error') {
+    throw new EnviaApiError('No fue posible consultar las transportadoras disponibles.', carrierPayload, carrierResponse.status);
+  }
+  const names = new Map<string, string>();
+  for (const entry of asArray(carrierRoot?.data ?? carrierRoot?.carriers ?? carrierPayload)) {
+    const record = asRecord(entry);
+    if (!record || record.active === false || record.active === 0 || record.active === '0' || record.active === 'false') continue;
+    const name = text(record, ['name', 'carrier']);
+    if (name) names.set(name, text(record, ['description', 'displayName']) || name);
+  }
+  if (!names.size) throw new EnviaApiError('No hay transportadoras habilitadas.', carrierPayload, carrierResponse.status);
 
-  return rates;
+  const rates: ShippingRate[] = [];
+  const diagnostics: unknown[] = [];
+  const carriers = [...names.entries()];
+  for (let index = 0; index < carriers.length; index += 4) {
+    const batch = carriers.slice(index, index + 4);
+    const results = await Promise.allSettled(batch.map(([carrier, label]) => requestRates(carrier, label)));
+    results.forEach((result, position) => {
+      if (result.status === 'fulfilled') {
+        rates.push(...result.value);
+      } else {
+        const error = result.reason;
+        diagnostics.push({
+          carrier: batch[position][0],
+          error: error instanceof EnviaApiError ? error.enviaError : { message: 'La transportadora no respondió a tiempo.' },
+        });
+      }
+    });
+  }
+  if (!rates.length) throw new EnviaApiError('No hay tarifas disponibles para este envío.', { general: generalError, carriers: diagnostics }, 422);
+  return deduplicateRates(rates);
+}
+
+function deduplicateRates(rates: ShippingRate[]) {
+  const unique = new Map<string, ShippingRate>();
+  for (const rate of rates) {
+    const existing = unique.get(rate.id);
+    if (!existing || rate.price < existing.price) unique.set(rate.id, rate);
+  }
+  return [...unique.values()].sort((a, b) => a.price - b.price);
 }
