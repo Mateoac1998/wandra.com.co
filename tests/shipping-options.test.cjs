@@ -13,7 +13,7 @@ new Function('module', 'exports', 'require', compiled)(component, component.expo
 test('radio cards show carrier, delivery, COP price and the selected carrier', () => {
   const html = renderToStaticMarkup(React.createElement(component.exports.ShippingRateOptions, {
     options: [
-      { id: 'coordinadora::normal', carrier: 'coordinadora', service: 'normal', price: 9000, currency: 'COP', deliveryDays: 2 },
+      { id: 'coordinadora::normal', carrier: 'coordinadora', service: 'ground_small', price: 9000, currency: 'COP', deliveryDays: 2 },
       { id: 'tcc::normal', carrier: 'tcc', service: 'normal', price: 11000, currency: 'COP' },
     ], selectedId: 'tcc::normal', onSelect: () => {},
   }));
@@ -21,6 +21,8 @@ test('radio cards show carrier, delivery, COP price and the selected carrier', (
   assert.equal((html.match(/checked=""/g) || []).length, 1);
   assert.match(html, /Coordinadora/);
   assert.match(html, /TCC/);
+  assert.match(html, /Paquetes pequeños/);
+  assert.doesNotMatch(html, /ground_small/);
   assert.match(html, /2 días hábiles/);
   assert.match(html, /9\.000/);
   assert.match(html, /11\.000/);
