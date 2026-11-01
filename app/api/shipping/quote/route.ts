@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { products } from '../../../../lib/catalog';
-import { getShippingRates, ShippingQuoteError, type ShippingQuoteInput } from '../../../../lib/envia';
+import { getShippingRates, EnviaApiError, ShippingQuoteError, type ShippingQuoteInput } from '../../../../lib/envia';
 
 import { inferShippingLogistics } from '../../../../lib/shipping-logistics';
 
@@ -69,6 +69,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ options });
   } catch (error) {
+    if (error instanceof EnviaApiError) {
+      return NextResponse.json(
+        { enviaError: error.enviaError, enviaStatus: error.upstreamStatus },
+        { status: 422 },
+      );
+    }
     const message = error instanceof ShippingQuoteError
       ? error.message
       : 'No fue posible cotizar el envío en este momento.';
