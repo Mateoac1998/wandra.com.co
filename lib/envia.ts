@@ -217,7 +217,7 @@ export async function getShippingRates({
         postalCode: destinationLocation.postalCode,
       },
       packages,
-      shipment: { type: 1 },
+      shipment: { carrier: 'envia', type: 1 },
       settings: { currency: 'COP' },
     }),
     cache: 'no-store',

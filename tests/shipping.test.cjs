@@ -32,6 +32,7 @@ test('quotes without a buyer postal code and maps names to validated Envia codes
   });
   const rates = await getShippingRates(input);
   assert.equal(rates[0].price, 9000);
+  assert.deepEqual(calls[2].body.shipment, { carrier: 'envia', type: 1 });
   assert.deepEqual(calls[1].body, { country: 'CO', state: 'QU', city: 'Armenia' });
   assert.deepEqual(calls[2].body.origin, {
     name: 'Wandra', phone: '+573214320429', street: 'Calle de prueba', number: '1-2',
