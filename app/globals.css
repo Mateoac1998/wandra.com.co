@@ -364,3 +364,14 @@ h1,h2{line-height:.86}
 .whatsapp-float:focus-visible,.floating-cart .cart-button:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
 @media(max-width:560px){.floating-cart{right:24px;bottom:94px}.floating-cart .cart-button{min-height:44px;padding:0 12px;font-size:.78rem}}
 .checkout-two>*{min-width:0}.checkout-form input,.checkout-form select{width:100%;max-width:100%}
+
+/* Shipping choices remain readable and keyboard-selectable on small screens. */
+.checkout-form .shipping-options{gap:12px;margin-top:24px;min-width:0}
+.checkout-form .shipping-options legend{margin-bottom:14px}
+.checkout-form .shipping-choice{display:grid;grid-template-columns:18px minmax(0,1fr) auto;align-items:start;gap:12px;padding:16px;border:1px solid var(--line);border-radius:12px;cursor:pointer;background:var(--cream)}
+.checkout-form .shipping-choice:has(input:checked){border-color:var(--ink);background:var(--paper);box-shadow:0 0 0 1px var(--ink)}
+.checkout-form .shipping-choice input[type=radio]{width:18px;height:18px;min-height:0;padding:0;margin:3px 0;accent-color:var(--ink)}
+.shipping-choice>span{display:grid;gap:5px;min-width:0;overflow-wrap:anywhere}
+.shipping-choice small{font-size:.84rem;line-height:1.35}
+.shipping-choice>b{white-space:nowrap}
+@media(max-width:380px){.checkout-form .shipping-choice{grid-template-columns:18px minmax(0,1fr)}.shipping-choice>b{grid-column:2}}
