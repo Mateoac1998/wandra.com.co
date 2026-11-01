@@ -5,6 +5,7 @@ import { getShippingRates, EnviaApiError, ShippingQuoteError, type ShippingQuote
 import { inferShippingLogistics } from '../../../../lib/shipping-logistics';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 type QuoteInput = {
   city?: string;
