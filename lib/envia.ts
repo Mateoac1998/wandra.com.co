@@ -31,6 +31,14 @@ type EnviaRecord = Record<string, unknown>;
 
 export class ShippingQuoteError extends Error {}
 
+// Keep the upstream JSON attached until the quote route can return it to the UI.
+export class EnviaApiError extends ShippingQuoteError {
+  constructor(message: string, public readonly enviaError: unknown, public readonly upstreamStatus: number) {
+    super(message);
+    this.name = 'EnviaApiError';
+  }
+}
+
 const ENVIA_RATE_URL = 'https://api.envia.com/ship/rate/';
 const ENVIA_LOCATE_URL = 'https://api.envia.com/locate';
 const ENVIA_STATES_URL = 'https://queries.envia.com/state?country_code=CO';
@@ -68,7 +76,7 @@ async function resolveDestination(department: string, cityName: string, stateCod
   const statesPayload: unknown = await statesResponse.json().catch(() => null);
   if (!statesResponse.ok) {
     console.error('Envia API Error:', statesPayload);
-    throw new ShippingQuoteError('No fue posible consultar los departamentos. Intenta nuevamente.');
+    throw new EnviaApiError('No fue posible consultar los departamentos. Intenta nuevamente.', statesPayload, statesResponse.status);
   }
   const stateRecord = asArray(asRecord(statesPayload)?.data).map(asRecord).find((state) =>
     state && (department ? normalized(text(state, ['name'])) === normalized(department) : text(state, ['code_2_digits']) === stateCode));
@@ -85,7 +93,7 @@ async function resolveDestination(department: string, cityName: string, stateCod
   const root = asRecord(payload);
   if (!response.ok || root?.meta === 'error') {
     console.error('Envia API Error:', payload);
-    throw new ShippingQuoteError('No pudimos validar ese municipio en el departamento seleccionado. Revisa su nombre completo.');
+    throw new EnviaApiError('No pudimos validar ese municipio en el departamento seleccionado. Revisa su nombre completo.', payload, response.status);
   }
   const candidates = [root, asRecord(root?.data), ...asArray(root?.data).map(asRecord)].filter((item): item is EnviaRecord => Boolean(item));
   const location = candidates.find((item) =>
@@ -218,7 +226,7 @@ export async function getShippingRates({
   const ratePayload = await rateResponse.json().catch(() => null);
   if (!rateResponse.ok || asRecord(ratePayload)?.meta === 'error') {
     console.error('Envia API Error:', ratePayload);
-    throw new ShippingQuoteError('Envia no pudo cotizar este destino en este momento.');
+    throw new EnviaApiError('Envia no pudo cotizar este destino en este momento.', ratePayload, rateResponse.status);
   }
 
   const root = asRecord(ratePayload);
