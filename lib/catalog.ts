@@ -13,6 +13,7 @@ export type Product = {
   images?: string[];
   variants: Variant[];
   sanitaryRegistration?: string;
+  stock?: number;
 };
 
 // Precios y SKU importados del export de WooCommerce suministrado por Wandra.
