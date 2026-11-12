@@ -1,0 +1,100 @@
+/* Product photos use native horizontal scrolling and snap points. */
+.gallery {
+  min-width: 0;
+  padding: clamp(12px, 2vw, 24px);
+}
+
+.compact {
+  padding: 0;
+}
+
+.frame {
+  position: relative;
+  background: var(--paper);
+}
+
+.track {
+  height: clamp(350px, 46vw, 670px);
+  scrollbar-width: none;
+}
+
+.compact .track {
+  height: 260px;
+}
+
+.gallery .slide img,
+.gallery .thumb img {
+  object-fit: contain;
+}
+
+.thumbnails {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 8px;
+}
+
+.thumb {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--cream);
+  cursor: pointer;
+}
+
+.thumb[aria-current='true'] {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+.arrow {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.arrow:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+.previous {
+  left: 10px;
+}
+
+.next {
+  right: 10px;
+}
+
+.gallery :is(button, .track):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (min-width: 768px) {
+  .arrow {
+    display: flex;
+  }
+}
+
+@media (max-width: 600px) {
+  .compact .track {
+    height: 235px;
+  }
+}

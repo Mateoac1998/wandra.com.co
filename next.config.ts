@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [new URL('https://res.cloudinary.com/mk5klko9/image/upload/**')],
+  },
   async redirects() {
     return [
       { source: '/productos/mateo-cafe', destination: '/productos/kombucha-cafe', permanent: true },

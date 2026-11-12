@@ -11,6 +11,7 @@ export type Product = {
   description: string;
   image: string;
   images?: string[];
+  gallery?: { src: string; alt: string }[];
   variants: Variant[];
   sanitaryRegistration?: string;
 };
@@ -22,7 +23,7 @@ export const products: Product[] = [
   { slug: 'ghee', name: 'Ghee', sku: 'GH', category: 'Ghee', description: 'Mantequilla clarificada para cocinar y acompañar recetas.', image: media.ghee, variants: [{ label: '250 ml', price: 21000, sku: 'GH025' }, { label: '500 ml', price: 40000, sku: 'GH050' }, { label: '1000 ml', price: 80000, sku: 'GH100' }] },
   { slug: 'kombucha-cafe', name: 'Kombucha Café', sku: 'KC', category: 'Kombucha', description: 'Kombucha artesanal con perfil de café, fría y lista para disfrutar.', image: media.coffeeServed, variants: [{ label: '280 ml', price: 8000, sku: 'KC028' }, { label: '500 ml', price: 12000, sku: 'KC050' }], sanitaryRegistration: 'RSA-1563-2025' },
   { slug: 'kombucha-jengibre', name: 'Kombucha de Jengibre', sku: 'KJ', category: 'Kombucha', description: 'Kombucha artesanal con un perfil fresco y especiado de jengibre.', image: media.ginger, images: [media.ginger, media.gingerAlternate], variants: [{ label: '280 ml', price: 8000, sku: 'KJ028' }, { label: '500 ml', price: 12000, sku: 'KJ050' }], sanitaryRegistration: 'RSA-1563-2025' },
-  { slug: 'kombucha-flor-de-jamaica', name: 'Kombucha Flor de Jamaica', sku: 'KFJ', category: 'Kombucha', description: 'Kombucha artesanal de flor de jamaica, de sabor frutal y ácido.', image: media.pack500, variants: [{ label: '280 ml', price: 8000, sku: 'KFJ028' }, { label: '500 ml', price: 12000, sku: 'KFJ050' }], sanitaryRegistration: 'RSA-1563-2025' },
+  { slug: 'kombucha-flor-de-jamaica', name: 'Kombucha Flor de Jamaica', sku: 'KFJ', category: 'Kombucha', description: 'Kombucha artesanal de flor de jamaica, de sabor frutal y ácido.', image: media.jamaicaGallery[0].src, gallery: media.jamaicaGallery, variants: [{ label: '280 ml', price: 8000, sku: 'KFJ028' }, { label: '500 ml', price: 12000, sku: 'KFJ050' }], sanitaryRegistration: 'RSA-1563-2025' },
   { slug: 'leche-dorada', name: 'Leche Dorada', sku: 'LD', category: 'Bebidas funcionales', description: 'Mezcla de especias para preparar una bebida cálida y aromática.', image: media.goldenMilk, variants: [{ label: '100 ml', price: 12000, sku: 'LD010' }, { label: '250 ml', price: 24000, sku: 'LD025' }] },
   { slug: 'mantequilla-de-macadamia', name: 'Mantequilla de Macadamia', sku: 'MM', category: 'Mantequillas', description: 'Mantequilla de macadamia de textura cremosa.', image: media.macadamiaCream, variants: [{ label: '100 ml', price: 22000, sku: 'MM010' }, { label: '250 ml', price: 44000, sku: 'MM025' }, { label: '500 ml', price: 80000, sku: 'MM050' }] },
   { slug: 'mantequilla-de-mani', name: 'Mantequilla de Maní', sku: 'MMA', category: 'Mantequillas', description: 'Mantequilla de maní para desayunos, snacks y recetas.', image: 'https://wandra.com.co/wp-content/uploads/2023/10/mani.jpg', variants: [{ label: '100 ml', price: 8000, sku: 'MMA010' }, { label: '250 ml', price: 18000, sku: 'MMA025' }, { label: '500 ml', price: 30000, sku: 'MMA050' }, { label: '1000 ml', price: 50000, sku: 'MMA100' }] },
