@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Nosotros | Wandra',
+  title: 'Nosotros',
   description: 'Conoce el origen y la forma de hacer de Wandra.',
   alternates: { canonical: '/nosotros' },
 };
