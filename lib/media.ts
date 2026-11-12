@@ -15,6 +15,12 @@ export const media = {
   // Monograma WHS original, sin la ilustración de la india.
   logo: '/assets/wandra-logo-web.png',
   hero: cloudinaryAsset('v1788908562', 'MST0997911.jpg', 'f_auto,q_auto,w_2400,c_limit'),
+  socialPreview: {
+    url: cloudinaryAsset('v1788908562', 'MST0997911.jpg', 'c_fill,g_auto,w_1200,h_630,q_auto'),
+    width: 1200,
+    height: 630,
+    alt: 'Botellas y caja de kombucha artesanal de Wandra',
+  },
   origin: cloudinaryAsset('v1789126597', 'Scooby_Wandra.png'),
   ritualVideo: cloudinaryAsset('v1789127546', 'IMG20250227153443_1.jpg'),
   ritual: cloudinaryAsset('v1788908564', 'MST0009711.jpg'),

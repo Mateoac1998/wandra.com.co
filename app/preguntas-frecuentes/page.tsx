@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { site } from '@/lib/site';
 
 const questions = [
   { question: '¿Qué es la kombucha?', answer: 'La kombucha es una bebida fermentada elaborada a partir de té endulzado y un cultivo vivo conocido como SCOBY. Su perfil suele ser ácido, ligeramente dulce y efervescente.' },
@@ -11,7 +10,7 @@ const questions = [
   { question: '¿Puedo consumir kombucha si tengo una condición médica?', answer: 'La kombucha es un alimento, no un medicamento. Si estás en embarazo, lactancia o tienes una condición médica, consulta a un profesional de la salud antes de cambiar tu alimentación.' },
 ];
 
-export const metadata: Metadata = { title: `Preguntas frecuentes | ${site.shortName}`, description: 'Respuestas claras sobre kombucha, conservación, tamaños y el catálogo de Wandra.', alternates: { canonical: '/preguntas-frecuentes' } };
+export const metadata: Metadata = { title: 'Preguntas frecuentes', description: 'Respuestas claras sobre kombucha, conservación, tamaños y el catálogo de Wandra.', alternates: { canonical: '/preguntas-frecuentes' } };
 
 export default function FaqPage() {
   const schema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: questions.map(({ question, answer }) => ({ '@type': 'Question', name: question, acceptedAnswer: { '@type': 'Answer', text: answer } })) };

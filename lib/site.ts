@@ -5,7 +5,7 @@ import { media } from '@/lib/media';
 export const site = {
   name: 'Wandra Herencia Saludable',
   shortName: 'Wandra',
-  description: 'Compra kombucha artesanal en Colombia. Bebida fermentada, hecha en el Quindío y enviada a todo el país.',
+  description: 'Kombucha artesanal, ghee y alimentos vivos producidos en Quindío, Colombia. Cuidamos tu bienestar con fermentos naturales.',
   instagram: 'https://www.instagram.com/wandra_herencia_saludable/',
   facebook: process.env.NEXT_PUBLIC_WANDRA_FACEBOOK_URL || 'https://www.facebook.com/WandraHerenciaSaludable',
   tiktok: 'https://www.tiktok.com/@wandra_saludable',
