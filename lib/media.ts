@@ -33,9 +33,9 @@ export const media = {
   ginger: cloudinaryAsset('v1788908563', 'MST0004511.jpg'),
   gingerAlternate: cloudinaryAsset('v1788908088', 'kombucha_jengibre_280_ml_3.jpg'),
   jamaicaGallery: [
+    { src: `${jamaicaImageRoot}/MST0012811.jpg`, alt: 'Kombucha de flor de Jamaica cayendo de la botella a una copa' },
     { src: `${jamaicaImageRoot}/kombucha_F_jamaica_280_ml_2_1.jpg`, alt: 'Botella de kombucha de flor de Jamaica de 280 ml junto a flores secas' },
     { src: `${jamaicaImageRoot}/v1789127546/IMG20250227153443_1.jpg`, alt: 'Kombucha de flor de Jamaica servida en vaso con menta' },
     { src: `${jamaicaImageRoot}/2023_0915_16160300.jpg`, alt: 'Botella de kombucha de flor de Jamaica con tapa verde y un vaso al fondo' },
-    { src: `${jamaicaImageRoot}/MST0012811.jpg`, alt: 'Kombucha de flor de Jamaica cayendo de la botella a una copa' },
   ],
 };
