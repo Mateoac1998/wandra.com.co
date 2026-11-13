@@ -26,7 +26,7 @@ const products = [
 const trustCards = [
   { title: 'Ingredientes reales', copy: 'Sin azúcar ni aditivos añadidos. Una kombucha de fermentación viva.', Icon: Leaf },
   { title: 'Registro sanitario', copy: 'Registro sanitario INVIMA: RSA-1563-2025 para la línea de kombucha Wandra.', Icon: ShieldCheck },
-  { title: 'Envíos nacionales', copy: 'Despachos desde Armenia, Quindío. El envío se confirma en tu cotización.', Icon: MapPin },
+  { title: 'Envíos nacionales', copy: 'Wandra opera en Armenia, Quindío, y despacha a toda Colombia.', Icon: MapPin },
   { title: 'Conservación en frío', copy: 'Producto vivo, no pasteurizado. Mantener refrigerado entre 0 y 6 °C.', Icon: Snowflake },
 ];
 
@@ -45,10 +45,9 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const heroSlides = [
-    { emphasis: 'Natural para tu bienestar', description: 'Té, fruta y un cultivo vivo: una bebida fermentada hecha despacio en Colombia.' },
-    { emphasis: 'Hecha despacio para tu ritual', description: 'Sabor auténtico, ingredientes seleccionados y un momento de pausa para todos los días.' },
+    'Té, fruta y un cultivo vivo: una bebida fermentada hecha despacio en Colombia.',
+    'Sabor auténtico, ingredientes seleccionados y un momento de pausa para todos los días.',
   ];
-  const currentHero = heroSlides[heroSlide];
   const nextProduct = (direction: number) => setProductStart((current) => (current + direction + products.length) % products.length);
   const shownProducts = [0, 1, 2].map((offset) => products[(productStart + offset) % products.length]);
   useEffect(() => {
@@ -80,19 +79,19 @@ export default function Home() {
       <a href={site.instagram} target="_blank" rel="noreferrer" aria-label="Visitar Instagram de Wandra"><InstagramIcon /></a>
       <a href={site.facebook} target="_blank" rel="noreferrer" aria-label="Visitar Facebook de Wandra"><FacebookIcon /></a>
     </aside>
-    <section className="hero kombucha-hero" id="inicio" aria-label="Presentación de Wandra">
+    <section className="hero kombucha-hero" id="inicio" aria-labelledby="home-title">
       <div className="hero-copy" key={heroSlide}>
         <p className="hero-badge">✦ Kombucha artesanal · Hecha en Colombia</p>
-        <h1>Comprar<br />kombucha<br />artesanal:<br /><i>{currentHero.emphasis}</i></h1>
-        <p className="hero-description">{currentHero.description}</p>
+        <h1 id="home-title">Kombucha artesanal y <br /><i>alimentos vivos en Colombia</i></h1>
+        <p className="hero-description">{heroSlides[heroSlide]}</p>
         <div className="hero-cta"><a className="button button-yellow" href="/tienda">Ver la tienda <span aria-hidden="true">→</span></a><a className="hero-secondary" href={wholesaleUrl}>¿Tienes un negocio? Solicita catálogo</a></div>
       </div>
       <div className="hero-bottle-stage" aria-label="Fotografía editorial de Wandra"><AssetSlot source={media.hero} alt="Productos Wandra en una fotografía editorial" className="hero-bottle" /><span className="hero-number">0{heroSlide + 1}</span></div>
       <div className="hero-controls"><button aria-label="Mensaje anterior" type="button" onClick={() => setHeroSlide((heroSlide + heroSlides.length - 1) % heroSlides.length)}>←</button><button aria-label="Mensaje siguiente" type="button" onClick={() => setHeroSlide((heroSlide + 1) % heroSlides.length)}>→</button></div>
       <a className="scroll-cue" href="#ritual"><span>Descubre abajo</span><i aria-hidden="true" /></a>
     </section>
-    <section className="trust-section" aria-label="Compromisos de Wandra" data-reveal>
-      <div className="trust-heading"><p className="eyebrow">Lo que cuidamos</p><h2>HECHO PARA<br /><i>CONFIAR</i></h2></div>
+    <section className="trust-section" aria-labelledby="trust-title" data-reveal>
+      <div className="trust-heading"><p className="eyebrow">Lo que cuidamos</p><h2 id="trust-title">HECHO PARA <br /><i>CONFIAR</i></h2></div>
       <div className="trust-grid">
         {trustCards.map(({ title, copy, Icon }) => <article className="trust-card" key={title}>
           <Icon aria-hidden="true" strokeWidth={1.5} />
