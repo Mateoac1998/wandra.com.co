@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { products } from '../../../lib/catalog';
 import { getSupabaseAdmin } from '../../../lib/supabase/admin';
-import { getShippingRates, ShippingQuoteError, type ShippingRate, type ShippingQuoteInput } from '../../../lib/envia';
+import { getShippingQuote, ShippingQuoteError, type ShippingRate, type ShippingQuoteInput, type ShipmentSnapshot } from '../../../lib/envia';
 
 import { inferShippingLogistics } from '../../../lib/shipping-logistics';
 
@@ -48,6 +48,7 @@ export async function POST(request: Request) {
   const safeCustomer = customer as Required<NonNullable<CheckoutInput['customer']>>;
 
   let shippingRate: ShippingRate;
+  let shipment: ShipmentSnapshot;
   try {
     const shippingInput: ShippingQuoteInput = {
       city: safeCustomer.city,
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
         return { ...item, logistics: inferShippingLogistics(product.name, variant.label) };
       }),
     };
-    const rates = await getShippingRates(shippingInput);
+    const { rates, origin, destination, packages } = await getShippingQuote(shippingInput);
     const selectedRate = rates.find((rate) => rate.id === input.shipping?.optionId);
     if (!selectedRate) {
       return NextResponse.json({ error: 'La tarifa seleccionada ya no está disponible. Vuelve a cotizar el envío.' }, { status: 400 });
@@ -68,6 +69,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'La tarifa de envío cambió. Vuelve a cotizar y confirma el nuevo total antes de pagar.' }, { status: 409 });
     }
     shippingRate = selectedRate;
+    shipment = {
+      origin,
+      destination: {
+        name: safeCustomer.fullName.trim(),
+        phone: safeCustomer.phone.trim(),
+        email: safeCustomer.email.trim(),
+        street: safeCustomer.address.trim(),
+        city: destination.city,
+        state: destination.state,
+        country: destination.country,
+        postalCode: destination.postalCode || undefined,
+      },
+      packages,
+    };
   } catch (error) {
     const message = error instanceof ShippingQuoteError
       ? error.message
@@ -100,7 +115,7 @@ export async function POST(request: Request) {
         shipping_city: `${safeCustomer.city.trim()}, ${(safeCustomer.department?.trim() || safeCustomer.stateCode?.trim())}`,
         total_amount: totalAmount,
         status: 'pending',
-        items: { products: items, shipping: shippingRate },
+        items: { products: items, shipping: shippingRate, shipment },
       })
       .select('id')
       .single();
@@ -117,6 +132,8 @@ export async function POST(request: Request) {
 
   const [firstName, ...lastName] = safeCustomer.fullName.trim().split(/\s+/);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+  const notificationUrl = new URL('/api/webhooks/mercadopago', baseUrl);
+  if (notificationUrl.hostname === 'wandra.com.co') notificationUrl.hostname = 'www.wandra.com.co';
 
   const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
     method: 'POST',
@@ -124,7 +141,7 @@ export async function POST(request: Request) {
     body: JSON.stringify({
       items: paymentItems,
       external_reference: orderId,
-      notification_url: `${baseUrl}/api/webhooks/mercadopago`,
+      notification_url: notificationUrl.href,
       payer: { name: firstName, surname: lastName.join(' '), email: safeCustomer.email.trim(), phone: { number: safeCustomer.phone.trim() }, identification: { type: safeCustomer.documentType, number: safeCustomer.documentNumber.trim() } },
       back_urls: { success: `${baseUrl}/compra/resultado?estado=aprobado&referencia=${orderId}`, failure: `${baseUrl}/compra/resultado?estado=rechazado&referencia=${orderId}`, pending: `${baseUrl}/compra/resultado?estado=pendiente&referencia=${orderId}` },
       auto_return: 'approved',
