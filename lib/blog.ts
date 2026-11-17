@@ -1,6 +1,65 @@
-export type Article = { slug: string; title: string; description: string; published: string; category: string; body: { heading: string; text: string }[] };
+import { media } from '@/lib/media';
+
+type ArticleParagraph = { heading: string; text: string };
+
+export type Article = {
+  slug: string;
+  title: string;
+  description: string;
+  published: string;
+  category: string;
+  image?: { src: string; alt: string };
+  body: (ArticleParagraph & { subsections?: ArticleParagraph[] })[];
+  sources?: { title: string; url: string }[];
+};
+
+export const guidesUrl = 'https://www.wandra.com.co/guias';
+
+export function formatArticleDate(date: string) {
+  return new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(date));
+}
 
 export const articles: Article[] = [
+  {
+    slug: 'kombucha-artesanal-producto-vivo-conservacion',
+    title: 'Kombucha Artesanal: ¿Por qué es un producto vivo y cómo debes conservarlo en casa?',
+    description: 'Descubre qué hace viva a la kombucha artesanal de Wandra, elaborada en Armenia, Quindío, y cómo conservarla refrigerada entre 0 y 6 °C.',
+    published: '2026-11-16',
+    category: 'Kombucha',
+    image: media.jamaicaGallery[0],
+    body: [
+      {
+        heading: '¿Qué hace que la kombucha sea un producto vivo?',
+        text: 'La kombucha es té fermentado por un cultivo de bacterias y levaduras conocido como SCOBY. En Wandra elaboramos nuestra kombucha artesanal en Armenia, Quindío, y la embotellamos sin pasteurizar. Por eso conserva microorganismos vivos que pueden seguir activos dentro de la botella.',
+        subsections: [
+          {
+            heading: 'Qué aporta la fermentación viva',
+            text: 'El cultivo transforma parte del azúcar del té en compuestos que le dan acidez y aroma. El gas producido durante la fermentación aporta burbujas. La acidez y la efervescencia son dos de las cualidades que distinguen a la kombucha de un té frío.',
+          },
+        ],
+      },
+      {
+        heading: 'Cómo conservar la kombucha en casa',
+        text: 'Guarda la kombucha Wandra en la nevera entre 0 y 6 °C, según la indicación de su etiqueta. En una bebida sin pasteurizar, el frío ralentiza la fermentación y ayuda a limitar los cambios de sabor y la acumulación de presión en la botella.',
+        subsections: [
+          {
+            heading: 'Antes de abrirla',
+            text: 'Al recibirla, guárdala en la nevera, en posición vertical y sin agitarla. Mantenla refrigerada hasta el momento de servir y revisa la fecha y las indicaciones de la etiqueta.',
+          },
+          {
+            heading: 'Después de abrirla',
+            text: 'Ábrela despacio mientras esté fría. Si queda kombucha, cierra bien la botella, devuélvela a la nevera y sigue el plazo de consumo indicado en el envase.',
+          },
+        ],
+      },
+    ],
+    sources: [
+      {
+        title: 'BC Centre for Disease Control · Guía de conservación de kombucha y jun',
+        url: 'https://www.bccdc.ca/resource-gallery/Documents/Educational%20Materials/EH/FPS/Food/Fermented/Fermented%20Foods%20Guideline%20-%203.11%20Kombucha%20and%20Jun.pdf',
+      },
+    ],
+  },
   {
     slug: 'guia-definitiva-kombucha',
     title: 'Kombucha: guía para conocerla y disfrutarla',

@@ -98,23 +98,27 @@
        <priority>0.6400</priority>
   </url>
   <url>
-       <loc>https://www.wandra.com.co/blog</loc>
-       <lastmod>2026-11-11T14:56:20+00:00</lastmod>
+       <loc>https://www.wandra.com.co/guias</loc>
+       <lastmod>2026-11-16</lastmod>
        <priority>0.6400</priority>
   </url>
   <url>
-       <loc>https://www.wandra.com.co/blog/guia-definitiva-kombucha</loc>
+       <loc>https://www.wandra.com.co/guias/guia-definitiva-kombucha</loc>
        <lastmod>2025-02-12T00:00:00+00:00</lastmod>
        <priority>0.5120</priority>
   </url>
   <url>
-       <loc>https://www.wandra.com.co/blog/que-es-la-kombucha</loc>
+       <loc>https://www.wandra.com.co/guias/que-es-la-kombucha</loc>
        <lastmod>2025-01-28T00:00:00+00:00</lastmod>
        <priority>0.5120</priority>
   </url>
   <url>
-       <loc>https://www.wandra.com.co/blog/ghee-en-la-cocina</loc>
+       <loc>https://www.wandra.com.co/guias/ghee-en-la-cocina</loc>
        <lastmod>2024-12-18T00:00:00+00:00</lastmod>
        <priority>0.5120</priority>
+  </url>
+  <url>
+       <loc>https://www.wandra.com.co/guias/kombucha-artesanal-producto-vivo-conservacion</loc>
+       <lastmod>2026-11-16</lastmod>
   </url>
 </urlset>
