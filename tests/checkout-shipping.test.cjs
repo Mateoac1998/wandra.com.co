@@ -16,7 +16,15 @@ function checkout() {
   new Function('module', 'exports', 'require', 'fetch', 'process', compiled)(module, module.exports, (id) => {
     if (id === 'next/server') return { NextResponse: { json: (data, options) => Response.json(data, options) } };
     if (id.endsWith('/catalog')) return { products: [{ name: 'Kombucha', description: 'Test', variants: [{ sku: 'KC050', label: '500 ml', price: 12000 }] }] };
-    if (id.endsWith('/envia')) return { ShippingQuoteError: Error, getShippingRates: async () => rates };
+    if (id.endsWith('/envia')) return {
+      ShippingQuoteError: Error,
+      getShippingQuote: async ({ items }) => ({
+        rates,
+        origin: { street: 'Test origin', city: '63001000', state: 'QU', country: 'CO' },
+        destination: { city: '05266000', state: 'AN', country: 'CO', postalCode: '' },
+        packages: items.map((item) => item.logistics),
+      }),
+    };
     if (id.endsWith('/shipping-logistics')) return { inferShippingLogistics: () => ({ weight: .82, length: 6, width: 6, height: 24.4 }) };
     if (id.endsWith('/supabase/admin')) return { getSupabaseAdmin: () => ({
       from: () => ({ insert: (order) => { captured.orders.push(order); return { select: () => ({ single: async () => ({ data: { id: 'order-test' }, error: null }) }) }; } }),
@@ -32,7 +40,7 @@ function checkout() {
 const request = (optionId, price) => new Request('https://example.com/api/checkout', {
   method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
     items: [{ sku: 'KC050', quantity: 2 }],
-    customer: { fullName: 'Test Buyer', email: 'buyer@example.com', phone: '3000000000', documentType: 'CC', documentNumber: '1000', city: 'Armenia', department: 'Quindío', address: 'Test address' },
+    customer: { fullName: 'Test Buyer', email: 'buyer@example.com', phone: '3000000000', documentType: 'CC', documentNumber: '1000', city: 'Envigado', department: 'Antioquia', address: 'Test address' },
     shipping: { optionId, price },
   }),
 });
@@ -43,6 +51,11 @@ test('chosen carrier and shipping amount are persisted and added once to Mercado
   assert.equal(response.status, 200);
   assert.equal(captured.orders[0].total_amount, 35000);
   assert.deepEqual(captured.orders[0].items.shipping, rates[1]);
+  assert.deepEqual(captured.orders[0].items.shipment.destination, {
+    name: 'Test Buyer', email: 'buyer@example.com', phone: '3000000000', street: 'Test address',
+    city: '05266000', state: 'AN', country: 'CO', postalCode: undefined,
+  });
+  assert.equal(captured.orders[0].items.shipment.packages[0].weight, .82);
   assert.equal(captured.preferences[0].external_reference, 'order-test');
   assert.equal(captured.preferences[0].items.at(-1).unit_price, 11000);
   assert.equal(captured.preferences[0].items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0), 35000);
