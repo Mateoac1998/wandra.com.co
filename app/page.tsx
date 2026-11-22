@@ -7,6 +7,7 @@ import { site, whatsappWholesaleUrl } from '@/lib/site';
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '@/components/social-icons';
 import { CartButton } from '@/components/cart-button';
 import { QuickAddToCart } from '@/components/quick-add-to-cart';
+import styles from './home.module.css';
 
 function AssetSlot({ className = '', children, source, alt = '' }: { className?: string; children?: ReactNode; source?: string; alt?: string }) {
   const [failed, setFailed] = useState(false);
@@ -62,7 +63,7 @@ export default function Home() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => { observer.disconnect(); window.removeEventListener('scroll', onScroll); };
   }, []);
-  return <main className={scrolled ? 'is-scrolled' : ''}>
+  return <main className={`${styles.page} ${scrolled ? 'is-scrolled' : ''}`}>
     <div className="shipping-strip"><span>Fermentación viva · Hecha en Colombia</span><span className="shipping-city">Envíos nacionales desde Armenia, Quindío</span></div>
     <header className={`site-header ${menuOpen ? 'menu-open' : ''}`}>
       <a className="wordmark brand-logo" href="#inicio" aria-label="Wandra, inicio"><img src={media.logo} alt="Wandra" /></a>
@@ -80,10 +81,10 @@ export default function Home() {
       <a href={site.instagram} target="_blank" rel="noreferrer" aria-label="Visitar Instagram de Wandra"><InstagramIcon /></a>
       <a href={site.facebook} target="_blank" rel="noreferrer" aria-label="Visitar Facebook de Wandra"><FacebookIcon /></a>
     </aside>
-    <section className="hero kombucha-hero" id="inicio" aria-label="Presentación de Wandra">
+    <section className="hero kombucha-hero" id="inicio" aria-labelledby="home-title">
       <div className="hero-copy" key={heroSlide}>
         <p className="hero-badge">✦ Kombucha artesanal · Hecha en Colombia</p>
-        <h1>Comprar<br />kombucha<br />artesanal:<br /><i>{currentHero.emphasis}</i></h1>
+        <h1 id="home-title">Kombucha artesanal <br />en Colombia <br /><i>{currentHero.emphasis}</i></h1>
         <p className="hero-description">{currentHero.description}</p>
         <div className="hero-cta"><a className="button button-yellow" href="/tienda">Ver la tienda <span aria-hidden="true">→</span></a><a className="hero-secondary" href={wholesaleUrl}>¿Tienes un negocio? Solicita catálogo</a></div>
       </div>
@@ -113,8 +114,8 @@ export default function Home() {
     <section className="more-products" aria-label="Otros productos Wandra" data-reveal><div className="more-products-head"><h2>Hay mucho más<br /><i>por probar.</i></h2><p>Del primer sorbo a tu receta favorita.<br />Ingredientes para darle vida a tu mesa.</p></div><div className="more-products-grid">{moreToTry.map((product) => <a href={`/productos/${product.slug}`} className="more-product-card" key={product.name} aria-label={`Ver ${product.name}`}><span className="more-product-image"><img src={product.image} alt={product.name} loading="lazy" /></span><span className="more-product-category">{product.category}</span><strong>{product.name}</strong><small>{product.price}</small><b aria-hidden="true">↗</b></a>)}</div><a className="button more-products-cta" href="/productos">Abrir la despensa <span aria-hidden="true">↗</span></a></section>
     <section className="shop-section" id="comprar"><p className="eyebrow">Directo a tu nevera</p><h2>COMPRA EL<br /><i>RITUAL</i></h2><div className="pack-grid">{[['Six pack de Kombucha 280 ml', '$42.000 · 6 botellas de 280 ml', 'PACK_280', media.pack280, 'KSX280'], ['Six pack de Kombucha 500 ml', '$62.000 · 6 botellas de 500 ml', 'PACK_500', media.pack500, 'KSX500']].map(([title, copy, slot, image, sku], index) => <article className={`pack-card pack-${index + 1}`} key={slot}><AssetSlot source={image} alt={title} className="pack-image"><span className="pack-graphic">W</span></AssetSlot><h3>{title}</h3><p>{copy}</p><QuickAddToCart className="button button-dark" sku={sku}>Agregar al carrito</QuickAddToCart></article>)}</div><a className="text-link catalog-link" href="/productos">Ver catálogo completo <span>↗</span></a></section>
     <section className="share-pack" data-reveal><div className="share-pack-copy"><p className="eyebrow">Mejor cuando se comparte</p><h2>Seis razones<br />para decir<br /><i>¡salud!</i></h2><p>Para compartir, regalar o tener tu nevera lista. Tu ritual favorito, en un six pack.</p><div><QuickAddToCart className="button share-primary" sku="KSX280">Six pack 280 ml · $42.000 ↗</QuickAddToCart><QuickAddToCart className="share-secondary" sku="KSX500">También en 500 ml · $62.000 →</QuickAddToCart></div></div><AssetSlot source={media.pack280} alt="Six pack de Kombucha Wandra para compartir" className="share-pack-image" /></section>
-    <section className="business-section" id="mayoristas" data-reveal>
-      <div className="business-copy"><p className="eyebrow">Servicio para negocios · B2B</p><h2>Llevar Wandra a tu<br /><i>Restaurante,<br className="mobile-break" /> Café o Hotel</i></h2><p>Kombucha artesanal para carta, vitrina y venta directa. Te orientamos según tu ciudad, volumen y operación.</p><div className="business-benefits"><div><b>◫</b><span><strong>Botellas para tu negocio</strong><small>280 ml, 500 ml y 1.000 ml disponibles. La presentación de 750 ml está próxima a disponibilidad.</small></span></div><div><b>◌</b><span><strong>Tap System bajo consulta</strong><small>Si buscas servicio por copa, confirmamos contigo la disponibilidad vigente y sus condiciones.</small></span></div></div><div className="business-actions"><a className="button business-whatsapp" href={wholesaleUrl} target="_blank" rel="noreferrer">Contactar asesor B2B por WhatsApp</a><a className="button business-email" href={`mailto:${site.email}?subject=Solicitud%20cat%C3%A1logo%20mayorista`}>Solicitar por correo</a></div></div>
+    <section className="business-section" id="mayoristas" aria-labelledby="business-title" data-reveal>
+      <div className="business-copy"><p className="eyebrow">Servicio para negocios · B2B</p><h2 id="business-title">Llevar Wandra a tu<br /><i>Restaurante,<br className="mobile-break" /> Café o Hotel</i></h2><p>Kombucha artesanal para carta, vitrina y venta directa. Te orientamos según tu ciudad, volumen y operación.</p><div className="business-benefits"><div><b>◫</b><span><strong>Botellas para tu negocio</strong><small>280 ml, 500 ml y 1.000 ml disponibles. La presentación de 750 ml está próxima a disponibilidad.</small></span></div><div><b>◌</b><span><strong>Tap System bajo consulta</strong><small>Si buscas servicio por copa, confirmamos contigo la disponibilidad vigente y sus condiciones.</small></span></div></div><div className="business-actions"><a className="button business-whatsapp" href={wholesaleUrl} target="_blank" rel="noreferrer">Contactar asesor B2B por WhatsApp</a><a className="button business-email" href={`mailto:${site.email}?subject=Solicitud%20cat%C3%A1logo%20mayorista`}>Solicitar por correo</a></div></div>
       <div className="business-offer"><section><h3>Formatos de distribuidor</h3><div className="business-pills"><span>280 ml</span><span>500 ml</span><span>1.000 ml</span><span>750 ml próximamente</span></div><h3>Condiciones confirmadas</h3><div className="business-pills"><span>3–5 días hábiles</span><span>0–6 °C</span><span>Vida útil: 4 meses</span></div><div className="business-note"><h3>Precio y disponibilidad, claros</h3><p>Consulta la lista vigente de precios mayoristas y recibe una cotización para tu negocio.</p><a className="text-link" href="/mayoristas#catalogo">Ver formatos y precios <span>↗</span></a></div></section></div>
     </section>
     <section className="club-section"><div className="club-copy"><p className="eyebrow">Para los que vuelven</p><h2>RITUAL<br /><i>WANDRA</i></h2><p>Recibe tus sabores favoritos a tu ritmo y descubre ediciones que solo llegan a quienes viven el ritual.</p><a className="button button-yellow" href="#newsletter">Quiero ser parte</a></div><AssetSlot source={media.delivery} alt="Entrega de un ritual Wandra a domicilio" className="club-image"><span className="asset-shape shape-wave" /></AssetSlot></section>
