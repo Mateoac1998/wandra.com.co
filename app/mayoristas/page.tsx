@@ -16,7 +16,7 @@ export default function MayoristasPage() {
     <header className="article-header">
       <a className="mini-logo" href="/" aria-label="Volver al inicio">Wandra</a>
       <p className="eyebrow">Kombucha para negocios</p>
-      <h1>KOMBUCHA PARA<br /><i>TU NEGOCIO</i></h1>
+      <h1>Kombucha para <br /><i>mayoristas</i></h1>
       <p>Botellas de kombucha artesanal para restaurantes, cafés, hoteles y tiendas saludables en Colombia. Producida en Armenia, Quindío.</p>
     </header>
     <article className="article-body wholesale-body">
