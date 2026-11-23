@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from 'sonner';
-import { site, SITE_URL } from '@/lib/site';
+import { site, SITE_URL, CANONICAL_SITE_URL } from '@/lib/site';
 import { media } from '@/lib/media';
 import { CartButton } from '@/components/cart-button';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(CANONICAL_SITE_URL),
   title: { default: 'Wandra | Kombucha y alimentos vivos en Colombia', template: '%s | Wandra' },
   description: site.description,
   keywords: ['comprar kombucha en Colombia', 'kombucha artesanal en Armenia', 'kombucha Quindío', 'kombucha mayorista', 'kombucha para restaurantes y cafés'],
