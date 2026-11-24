@@ -46,9 +46,10 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const heroSlides = [
-    'Té, fruta y un cultivo vivo: una bebida fermentada hecha despacio en Colombia.',
-    'Sabor auténtico, ingredientes seleccionados y un momento de pausa para todos los días.',
+    { emphasis: 'Natural para tu bienestar', description: 'Té, fruta y un cultivo vivo: una bebida fermentada hecha despacio en Colombia.' },
+    { emphasis: 'Hecha despacio para tu ritual', description: 'Sabor auténtico, ingredientes seleccionados y un momento de pausa para todos los días.' },
   ];
+  const currentHero = heroSlides[heroSlide];
   const nextProduct = (direction: number) => setProductStart((current) => (current + direction + products.length) % products.length);
   const shownProducts = [0, 1, 2].map((offset) => products[(productStart + offset) % products.length]);
   useEffect(() => {
