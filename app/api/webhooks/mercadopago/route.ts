@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { getSupabaseAdmin } from '../../../../lib/supabase/admin';
+import { processPaidOrder, type PaidOrder } from '../../../../lib/order-fulfillment';
 
 export const runtime = 'nodejs';
+export const maxDuration = 45;
 
 type MercadoPagoNotification = { data?: { id?: string | number } };
-type MercadoPagoPayment = { status?: string; external_reference?: string | null };
+type MercadoPagoPayment = {
+  status?: string;
+  live_mode?: boolean;
+  external_reference?: string | null;
+  currency_id?: string;
+  transaction_amount?: string | number;
+  transaction_amount_refunded?: number;
+};
 
 function isValidMercadoPagoSignature({ signature, requestId, dataId, secret }: { signature: string | null; requestId: string | null; dataId: string; secret: string }) {
   if (!signature || !dataId) return false;
@@ -49,33 +58,56 @@ export async function POST(request: Request) {
   if (!/^\d+$/.test(paymentId)) return NextResponse.json({ error: 'Identificador de pago inválido.' }, { status: 400 });
 
   // Do not trust the browser return or webhook body alone: verify the payment with Mercado Pago.
-  const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    cache: 'no-store',
-  });
-  if (!paymentResponse.ok) {
+  let payment: MercadoPagoPayment;
+  try {
+    const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!response.ok) throw new Error('payment_lookup_failed');
+    payment = await response.json();
+    if (!payment || typeof payment.status !== 'string') throw new Error('invalid_payment_response');
+  } catch {
     console.error('No fue posible consultar el pago', paymentId);
     return NextResponse.json({ error: 'No fue posible verificar el pago.' }, { status: 502 });
   }
 
-  const payment = await paymentResponse.json() as MercadoPagoPayment;
   if (payment.status !== 'approved') return NextResponse.json({ received: true, status: payment.status });
+  if (payment.live_mode === false) {
+    return NextResponse.json({ received: true });
+  }
 
   const orderId = payment.external_reference;
-  if (!orderId) {
-    console.error('Pago aprobado sin external_reference', paymentId);
+  const amount = Number(payment.transaction_amount);
+  if (typeof orderId !== 'string' || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(orderId)
+      || payment.currency_id !== 'COP' || !Number.isFinite(amount) || amount <= 0
+      || Number(payment.transaction_amount_refunded ?? 0) !== 0) {
+    console.error('Pago aprobado sin referencia o importes válidos para Wandra', paymentId);
     return NextResponse.json({ received: true });
   }
 
   try {
     const supabase = getSupabaseAdmin();
-    const { error } = await supabase.from('orders').update({ status: 'paid' }).eq('id', orderId);
-    if (error) {
-      console.error('No fue posible actualizar la orden', error);
-      return NextResponse.json({ error: 'No fue posible actualizar la orden.' }, { status: 500 });
+    const { data, error } = await supabase.rpc('confirm_paid_order', {
+      p_order_id: orderId,
+      p_payment_id: paymentId,
+      p_amount: amount,
+    });
+    if (error || !data) {
+      console.error('No fue posible confirmar el pedido', orderId, error?.code);
+      return NextResponse.json({ error: 'No fue posible confirmar el pedido.' }, { status: 503 });
     }
-  } catch (error) {
-    console.error('Supabase webhook error', error);
+    if (data.state !== 'ready') {
+      console.error('Pago requiere revisión', orderId, paymentId, data.state);
+      return NextResponse.json({ received: true });
+    }
+    if (await processPaidOrder(supabase, data.order as PaidOrder)) {
+      // Mercado Pago retries. Persisted claims keep completed actions from running again.
+      return NextResponse.json({ received: true, status: 'paid', fulfillment: 'retry' }, { status: 503 });
+    }
+  } catch {
+    console.error('No fue posible procesar el webhook', orderId, paymentId);
     return NextResponse.json({ error: 'Base de datos no disponible.' }, { status: 503 });
   }
 

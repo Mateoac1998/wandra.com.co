@@ -1,19 +1,28 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from 'sonner';
-import { site, SITE_URL } from '@/lib/site';
+import { site, SITE_URL, CANONICAL_SITE_URL } from '@/lib/site';
 import { media } from '@/lib/media';
 import { CartButton } from '@/components/cart-button';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: { default: 'Wandra | Kombucha y alimentos vivos en Colombia', template: '%s | Wandra' },
+  metadataBase: new URL(CANONICAL_SITE_URL),
+  title: {
+    template: '%s | Wandra Herencia Saludable',
+    default: 'Wandra Herencia Saludable | Alimentos Vivos',
+  },
   description: site.description,
   keywords: ['comprar kombucha en Colombia', 'kombucha artesanal en Armenia', 'kombucha Quindío', 'kombucha mayorista', 'kombucha para restaurantes y cafés'],
   alternates: { canonical: '/' },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 } },
-  openGraph: { type: 'website', locale: 'es_CO', siteName: site.name, title: 'Wandra | Kombucha y alimentos vivos en Colombia', description: site.description, url: '/' },
-  twitter: { card: 'summary_large_image', title: 'Wandra | Kombucha y alimentos vivos en Colombia', description: site.description },
+  openGraph: {
+    type: 'website',
+    locale: 'es_CO',
+    siteName: site.name,
+    url: './',
+    images: [media.socialPreview],
+  },
+  twitter: { card: 'summary_large_image' },
   icons: { icon: media.logo },
 };
 

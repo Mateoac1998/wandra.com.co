@@ -29,6 +29,25 @@ export type ShippingQuoteInput = {
   items: QuoteItem[];
 };
 
+export type ShipmentSnapshot = {
+  origin: EnviaAddress;
+  destination: EnviaAddress;
+  packages: ReturnType<typeof buildShippingPackages>;
+};
+
+type EnviaAddress = {
+  name: string;
+  phone: string;
+  email?: string;
+  street: string;
+  number?: string;
+  district?: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode?: string;
+};
+
 type EnviaRecord = Record<string, unknown>;
 
 export class ShippingQuoteError extends Error {}
@@ -160,13 +179,17 @@ function normalizeRate(value: unknown, requestedCarrier = '', carrierName = ''):
   };
 }
 
-export async function getShippingRates({
+export async function getShippingRates(input: ShippingQuoteInput): Promise<ShippingRate[]> {
+  return (await getShippingQuote(input)).rates;
+}
+
+export async function getShippingQuote({
   city,
   department,
   stateCode,
   address,
   items,
-}: ShippingQuoteInput): Promise<ShippingRate[]> {
+}: ShippingQuoteInput) {
   const token = process.env.ENVIA_API_TOKEN;
   if (!token) throw new ShippingQuoteError('La cotización de envíos aún no está configurada.');
 
@@ -199,7 +222,7 @@ export async function getShippingRates({
         phone: '+573214320429',
         street: origin.street,
         number: origin.number,
-        district: 'Centro',
+        district: process.env.ENVIA_ORIGIN_DISTRICT?.trim() || 'Centro',
         city: '63001000',
         state: origin.stateCode,
         country: origin.countryCode,
@@ -243,7 +266,7 @@ export async function getShippingRates({
   let generalError: unknown = null;
   try {
     const generalRates = await requestRates();
-    if (generalRates.length) return deduplicateRates(generalRates);
+    if (generalRates.length) return { ...payload, rates: deduplicateRates(generalRates) };
   } catch (error) {
     if (!(error instanceof EnviaApiError) || !/carrier/i.test(JSON.stringify(error.enviaError)) ||
         !/missing|required|obligatori/i.test(JSON.stringify(error.enviaError))) throw error;
@@ -290,7 +313,7 @@ export async function getShippingRates({
     });
   }
   if (!rates.length) throw new EnviaApiError('No hay tarifas disponibles para este envío.', { general: generalError, carriers: diagnostics }, 422);
-  return deduplicateRates(rates);
+  return { ...payload, rates: deduplicateRates(rates) };
 }
 
 function deduplicateRates(rates: ShippingRate[]) {

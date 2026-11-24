@@ -1,0 +1,162 @@
+.page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.page > section,
+.page :global(.business-offer) > section {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.page :is(h1, h2, h3) {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.page :global(.business-pills) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.page :global(.business-pills) span {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 46px;
+  height: auto;
+  padding: 10px 16px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+  line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+  .page :global(.trust-section) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .page :global(.site-header) {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 12px;
+    padding-inline: 16px;
+  }
+
+  .page :global(.site-header) :global(.brand-logo) {
+    width: clamp(72px, 24vw, 98px);
+    max-width: 100%;
+  }
+
+  .page :global(.menu-toggle) {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .page :global(.site-header) :global(.header-actions) {
+    position: static;
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .page :global(.hero-copy) {
+    min-width: 0;
+    max-width: 100%;
+    padding-inline: 16px;
+  }
+
+  .page :global(.kombucha-hero)::after {
+    border: 0;
+  }
+
+  .page :global(.kombucha-hero) h1 {
+    margin: 0;
+    font-size: clamp(2.2rem, 9.5vw, 4rem);
+    line-height: 1.04;
+    letter-spacing: -.045em;
+  }
+
+  .page :global(.hero-secondary) {
+    width: auto;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .page :global(.hero-badge) {
+    max-width: 100%;
+    line-height: 1.4;
+  }
+
+  .page :is(
+    :global(.trust-section),
+    :global(.find-title),
+    :global(.find-copy),
+    :global(.pause-copy),
+    :global(.ritual-stills),
+    :global(.origin-copy),
+    :global(.inside-section),
+    :global(.flavors-head),
+    :global(.more-products),
+    :global(.shop-section),
+    :global(.share-pack-copy),
+    :global(.business-copy),
+    :global(.club-copy),
+    :global(footer)
+  ) {
+    padding-inline: 16px;
+  }
+
+  .page :global(.business-section) {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .page :global(.business-copy),
+  .page :global(.business-offer),
+  .page :global(.business-actions) {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .page :global(.business-offer) {
+    padding: 0 16px 50px;
+  }
+
+  .page :global(.business-offer) > section {
+    width: 100%;
+    padding: 24px 16px;
+  }
+
+  .page :global(.business-offer) h3 {
+    font-size: clamp(1.2rem, 5.5vw, 1.65rem);
+    line-height: 1.2;
+  }
+
+  .page :global(.business-pills) {
+    margin-bottom: 28px;
+  }
+
+  .page :global(.business-pills) span {
+    padding: 10px 14px;
+  }
+
+  .page :global(.business-actions) :global(.button) {
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    white-space: normal;
+  }
+}
