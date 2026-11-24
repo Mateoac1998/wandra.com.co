@@ -1,4 +1,5 @@
 export const SITE_URL = 'https://wandra.com.co';
+export const CANONICAL_SITE_URL = 'https://www.wandra.com.co';
 
 import { media } from '@/lib/media';
 

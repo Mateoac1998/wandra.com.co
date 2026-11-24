@@ -75,7 +75,7 @@ export default function Home() {
         <a href="/guias" onClick={() => setMenuOpen(false)}>Guías</a>
         <a href="/mayoristas" onClick={() => setMenuOpen(false)}>Mayoristas / HORECA</a>
       </nav>
-      <div className="header-actions"><a href="/mayoristas">B2B / HORECA</a><CartButton /></div>
+      <div className="header-actions"><CartButton /></div>
     </header>
     <aside className="social-rail" aria-label="Redes sociales de Wandra">
       <a href={site.instagram} target="_blank" rel="noreferrer" aria-label="Visitar Instagram de Wandra"><InstagramIcon /></a>
