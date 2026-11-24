@@ -12,7 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/contacto',
     '/preguntas-frecuentes',
     '/politicas',
-    '/blog',
+    '/guias',
   ];
 
   return [
@@ -21,7 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: new URL(`/productos/${product.slug}`, CANONICAL_SITE_URL).href,
     })),
     ...articles.map((article) => ({
-      url: new URL(`/blog/${article.slug}`, CANONICAL_SITE_URL).href,
+      url: new URL(`/guias/${article.slug}`, CANONICAL_SITE_URL).href,
       lastModified: article.published,
     })),
   ];
