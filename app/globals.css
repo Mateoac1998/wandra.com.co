@@ -375,3 +375,78 @@ h1,h2{line-height:.86}
 .shipping-choice small{font-size:.84rem;line-height:1.35}
 .shipping-choice>b{white-space:nowrap}
 @media(max-width:380px){.checkout-form .shipping-choice{grid-template-columns:18px minmax(0,1fr)}.shipping-choice>b{grid-column:2}}
+
+/* Interior pages share mobile spacing while the homepage keeps its own layout. */
+.content-page {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.content-page :is(h1, h2, h3) {
+  overflow-wrap: anywhere;
+}
+
+.content-page :is(.catalog-card, .article-card, .product-copy, .product-media) {
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .content-page :is(.content-hero, .article-header, .catalog-group, .article-grid, .product-copy) {
+    padding-inline: 16px;
+  }
+
+  .content-page :is(.content-hero, .article-header) h1 {
+    max-width: 100%;
+    font-size: clamp(2.2rem, 9vw, 3.4rem);
+    line-height: 1.05;
+    letter-spacing: -.04em;
+  }
+
+  .content-page .product-copy h1 {
+    max-width: 100%;
+    font-size: clamp(2.2rem, 9.5vw, 3.6rem);
+    line-height: 1.05;
+  }
+
+  .content-page :is(.article-body, .faq-list) {
+    width: calc(100% - 32px);
+    min-width: 0;
+  }
+
+  .content-page :is(.article-body, .catalog-group) h2 {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+    line-height: 1.08;
+  }
+
+  .content-page :is(.catalog-card h3, .article-card h2, .faq-list h2) {
+    max-width: 100%;
+    font-size: clamp(1.5rem, 7.5vw, 2.1rem);
+    line-height: 1.1;
+  }
+
+  .content-page .product-top {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .content-page .product-top .back-link {
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .content-page .button {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  .content-page .variant-list > div {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+}
+
