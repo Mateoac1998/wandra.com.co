@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { products, formatCOP } from '@/lib/catalog';
-import { absoluteUrl, site } from '@/lib/site';
+import { absoluteUrl } from '@/lib/site';
 import { CartButton } from '@/components/cart-button';
 import { AddToCart } from '@/components/add-to-cart';
 import { NativeProductGallery } from '@/components/native-product-gallery';
@@ -10,7 +10,7 @@ function categoryId(category: string) {
 }
 
 export const metadata: Metadata = {
-  title: `Productos | ${site.shortName}`,
+  title: 'Productos',
   description: 'Conoce las kombuchas, ghee, aceites, mantequillas y bebidas funcionales de Wandra.',
   alternates: { canonical: '/productos' },
 };

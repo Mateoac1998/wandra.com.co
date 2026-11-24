@@ -4,7 +4,7 @@ import { site, whatsappWholesaleUrl } from '@/lib/site';
 import { wholesaleFlavors, wholesalePresentations, wholesaleTerms } from '@/lib/wholesale';
 
 export const metadata: Metadata = {
-  title: 'Kombucha mayorista para restaurantes, cafés y hoteles | Wandra',
+  title: 'Kombucha mayorista para restaurantes, cafés y hoteles',
   description: 'Kombucha artesanal mayorista en Colombia para restaurantes, cafés, hoteles y tiendas saludables. Consulta formatos, precios y condiciones para negocios.',
   alternates: { canonical: '/mayoristas' },
 };

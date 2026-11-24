@@ -1,11 +1,31 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { articles, getArticle } from '@/lib/blog';
+import { media } from '@/lib/media';
 import { absoluteUrl, site } from '@/lib/site';
 
 type Props = { params: Promise<{ slug: string }> };
 export function generateStaticParams() { return articles.map(({ slug }) => ({ slug })); }
-export async function generateMetadata({ params }: Props): Promise<Metadata> { const article = getArticle((await params).slug); if (!article) return {}; return { title: `${article.title} | ${site.shortName}`, description: article.description, alternates: { canonical: `/blog/${article.slug}` }, openGraph: { title: article.title, description: article.description, type: 'article', publishedTime: article.published, url: `/blog/${article.slug}` } }; }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const article = getArticle((await params).slug);
+  if (!article) return {};
+  const url = absoluteUrl(`/blog/${article.slug}`);
+  return {
+    title: article.title,
+    description: article.description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'article',
+      locale: 'es_CO',
+      siteName: site.name,
+      title: article.title,
+      description: article.description,
+      publishedTime: article.published,
+      url,
+      images: [media.socialPreview],
+    },
+  };
+}
 
 export default async function ArticlePage({ params }: Props) {
   const article = getArticle((await params).slug); if (!article) notFound();

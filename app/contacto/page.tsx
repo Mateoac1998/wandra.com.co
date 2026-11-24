@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { site, whatsappWholesaleUrl } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Contacto | Wandra',
+  title: 'Contacto',
   description: 'Ponte en contacto con Wandra.',
   alternates: { canonical: '/contacto' },
 };

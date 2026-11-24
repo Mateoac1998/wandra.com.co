@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { formatCOP, getProduct, products } from '@/lib/catalog';
-import { absoluteUrl, site } from '@/lib/site';
+import { absoluteUrl, CANONICAL_SITE_URL, site } from '@/lib/site';
 import { ProductGallery } from '@/components/product-gallery';
 import { NativeProductGallery } from '@/components/native-product-gallery';
 import { AddToCart } from '@/components/add-to-cart';
@@ -14,8 +14,21 @@ export function generateStaticParams() { return products.map(({ slug }) => ({ sl
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = getProduct((await params).slug);
   if (!product) return {};
-  const title = `${product.name} | ${site.shortName}`;
-  return { title, description: product.description, alternates: { canonical: `/productos/${product.slug}` }, openGraph: { title, description: product.description, url: `/productos/${product.slug}`, images: [{ url: product.image, alt: product.name }] } };
+  const url = new URL(`/productos/${product.slug}`, CANONICAL_SITE_URL).href;
+  return {
+    title: product.name,
+    description: product.description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'website',
+      locale: 'es_CO',
+      siteName: site.name,
+      title: product.name,
+      description: product.description,
+      url,
+      images: [{ url: absoluteUrl(product.image), alt: product.gallery?.[0]?.alt ?? product.name }],
+    },
+  };
 }
 
 export default async function ProductPage({ params }: Props) {

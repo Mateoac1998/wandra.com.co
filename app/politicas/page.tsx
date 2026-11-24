@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { site } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Políticas, términos y envíos | Wandra',
+  title: 'Políticas, términos y envíos',
   description: 'Consulta las políticas de envíos, cambios, devoluciones, privacidad y términos de Wandra.',
   alternates: { canonical: '/politicas' },
 };
