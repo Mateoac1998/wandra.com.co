@@ -6,7 +6,9 @@ const ts = require('typescript');
 const source = fs.readFileSync(path.join(__dirname, '../lib/catalog.ts'), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
 const catalog = { exports: {} };
-new Function('module', 'exports', 'require', compiled)(catalog, catalog.exports, () => ({ media: {} }));
+new Function('module', 'exports', 'require', compiled)(catalog, catalog.exports, () => ({
+  media: { jamaicaGallery: [{ src: 'https://example.com/jamaica.jpg' }] },
+}));
 const { products } = catalog.exports;
 const helperSource = fs.readFileSync(path.join(__dirname, '../lib/shipping-logistics.ts'), 'utf8');
 const helperCompiled = ts.transpileModule(helperSource, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
