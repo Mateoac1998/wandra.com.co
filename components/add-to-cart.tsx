@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { addToCart } from '@/lib/cart';
+import { trackAddToCart } from '@/lib/analytics';
 
 type CartProduct = { slug: string; name: string; image: string; variants: { label: string; price: number; sku: string }[] };
 
@@ -14,6 +15,7 @@ export function AddToCart({ product, className = 'button button-dark' }: { produ
   if (!variant) return null;
   const add = () => {
     addToCart({ sku: variant.sku, productSlug: product.slug, name: product.name, variant: variant.label, price: variant.price, image: product.image }, quantity);
+    trackAddToCart({ sku: variant.sku, name: product.name, price: variant.price, quantity });
     toast.success('Producto agregado a tu bolsa', { description: 'Puedes continuar comprando o finalizar tu pedido cuando quieras.' });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1800);

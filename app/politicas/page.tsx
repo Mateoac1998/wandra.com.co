@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { site } from '@/lib/site';
+import { CookieSettingsButton } from '@/components/cookie-settings-button';
 
 export const metadata: Metadata = {
   title: 'Políticas, términos y envíos',
@@ -16,6 +17,7 @@ export default function PoliticasPage() {
       <section id="conservacion"><p className="eyebrow">Conservación</p><h2>MANTÉN EL FRÍO</h2><p>La kombucha debe conservarse refrigerada entre 0 y 6 °C. Es un producto vivo, no pasteurizado. La vida útil indicada para la línea de kombucha es de 4 meses desde la fecha de elaboración, siempre refrigerada.</p></section>
       <section id="terminos"><p className="eyebrow">Términos de compra</p><h2>ANTES DE CONFIRMAR</h2><p>La disponibilidad, presentación, precio final y costo de envío se confirman directamente antes de cada pedido. Los precios mayoristas y el PVP sugerido se rigen por la vigencia del catálogo disponible al momento de la cotización.</p></section>
       <section id="privacidad"><p className="eyebrow">Tratamiento de datos</p><h2>USAMOS SOLO LO NECESARIO</h2><p>Los datos que compartes al escribirnos se usan para responder tu solicitud, elaborar una cotización, coordinar el pedido y brindar atención posterior. Puedes solicitar la actualización o eliminación de tu información escribiendo a {site.email}.</p></section>
+      <section id="cookies"><p className="eyebrow">Cookies</p><h2>TÚ DECIDES</h2><p>Wandra usa cookies necesarias para guardar tu bolsa de compra y recordar esta preferencia. Solo si lo autorizas, también usamos cookies de analítica y de marketing (por ejemplo, Meta) para entender cómo llegas al sitio y medir nuestra publicidad. Puedes aceptar, rechazar o cambiar tu decisión cuando quieras.</p><CookieSettingsButton /></section>
       <section><p className="eyebrow">Contacto</p><h2>¿NECESITAS AYUDA?</h2><p>Escríbenos a {site.email} o por WhatsApp al 321 432 0429.</p></section>
     </article>
   </main>;

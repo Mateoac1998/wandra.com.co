@@ -131,7 +131,10 @@ export async function POST(request: Request) {
   }
 
   const [firstName, ...lastName] = safeCustomer.fullName.trim().split(/\s+/);
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+  // Siempre volvemos a `www`: el carrito y el consentimiento viven en localStorage, que es por origen.
+  const returnOrigin = new URL(process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin);
+  if (returnOrigin.hostname === 'wandra.com.co') returnOrigin.hostname = 'www.wandra.com.co';
+  const baseUrl = returnOrigin.origin;
   const notificationUrl = new URL('/api/webhooks/mercadopago', baseUrl);
   if (notificationUrl.hostname === 'wandra.com.co') notificationUrl.hostname = 'www.wandra.com.co';
 

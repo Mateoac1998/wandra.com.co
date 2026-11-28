@@ -2,6 +2,19 @@
 
 Todas las versiones relevantes de Wandra se registran aquí.
 
+## Sin publicar
+
+### Añadido
+
+- Banner de consentimiento de cookies (necesarias, analítica y marketing) con preferencia persistente y opción de cambiarla desde `/politicas#cookies`.
+- Meta Pixel (`NEXT_PUBLIC_META_PIXEL_ID`) y GA4 (`NEXT_PUBLIC_GA4_ID`) que solo se cargan con ID válido y consentimiento, con eventos de página, producto, bolsa, checkout y compra en COP. Ver `docs/tracking.md`.
+- Redirecciones permanentes desde las rutas heredadas de WordPress/WooCommerce (productos, categorías, tienda, políticas y entradas de blog).
+
+### Corregido
+
+- Las URLs de retorno de Mercado Pago apuntan siempre a `www.wandra.com.co`, para que el carrito y el consentimiento (guardados por origen) sigan disponibles al volver.
+- `/tienda` redirige de forma permanente (308) a `/productos`.
+
 ## 0.3.1 — 2026-09-12
 
 ### Corregido

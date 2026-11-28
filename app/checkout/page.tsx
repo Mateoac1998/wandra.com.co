@@ -2,9 +2,10 @@
 
 import { ShippingRateOptions } from '@/components/shipping-rate-options';
 import type { ShippingRate as ShippingOption } from '@/lib/envia';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { cartTotal, changeCartQuantity, useCart } from '@/lib/cart';
 import { colombiaDepartments as departments, colombiaMunicipalities } from '@/lib/colombia';
+import { rememberCheckout, trackBeginCheckout, type TrackedItem } from '@/lib/analytics';
 
 const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
@@ -27,6 +28,14 @@ export default function CheckoutPage() {
   const selectedShipping = shippingOptions.find((option) => option.id === selectedShippingId);
   const total = productsTotal + (selectedShipping?.price || 0);
   const setField = (field: keyof typeof form, value: string) => setForm((current) => ({ ...current, [field]: value }));
+  const trackedItems = useMemo<TrackedItem[]>(() => lines.map((line) => ({ sku: line.sku, name: line.name, price: line.price, quantity: line.quantity })), [lines]);
+  const checkoutStarted = useRef(false);
+  // Inicio de checkout: una vez por visita, cuando ya hay productos en la bolsa.
+  useEffect(() => {
+    if (checkoutStarted.current || !trackedItems.length) return;
+    checkoutStarted.current = true;
+    trackBeginCheckout(trackedItems, productsTotal);
+  }, [trackedItems, productsTotal]);
 
   useEffect(() => {
     const city = form.city.trim();
@@ -105,9 +114,10 @@ export default function CheckoutPage() {
           shipping: { optionId: selectedShipping.id, price: selectedShipping.price },
         }),
       });
-      const data = await response.json().catch(() => ({})) as { init_point?: string; error?: string };
+      const data = await response.json().catch(() => ({})) as { init_point?: string; orderId?: string; error?: string };
       if (!response.ok) throw new Error(data.error || 'No fue posible iniciar el pago.');
       if (!data.init_point) throw new Error('Mercado Pago no devolvió la URL de pago.');
+      if (data.orderId) rememberCheckout(data.orderId, trackedItems, total);
       window.location.href = data.init_point;
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'No fue posible abrir el pago.');
